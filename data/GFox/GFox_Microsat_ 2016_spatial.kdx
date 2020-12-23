@@ -1,0 +1,162 @@
+Layout {
+  FileType : "delimited"
+  Delimiter : ","
+  Latitude : "36"
+  Longitude : "37"
+  SkipRows : "1"
+  TextCodec : "System"
+  FieldDefinitions {
+    0 {
+      Name : "Sample"
+      Type : "string"
+    }
+    1 {
+      Name : "genotype"
+      Type : "string"
+    }
+    2 {
+      Name : "SoH49"
+      Type : "string"
+    }
+    3 {
+      Name : "duplicate"
+      Type : "string"
+    }
+    4 {
+      Name : "Allelematch"
+      Type : "string"
+    }
+    5 {
+      Name : "CXX.402"
+      Type : "int"
+    }
+    6 {
+      Name : "CXX.402.2"
+      Type : "int"
+    }
+    7 {
+      Name : "AHT.142"
+      Type : "int"
+    }
+    8 {
+      Name : "AHT.142.2"
+      Type : "int"
+    }
+    9 {
+      Name : "REN105L03"
+      Type : "int"
+    }
+    10 {
+      Name : "REN105L03.2"
+      Type : "int"
+    }
+    11 {
+      Name : "CPH18"
+      Type : "int"
+    }
+    12 {
+      Name : "CPH18.2"
+      Type : "int"
+    }
+    13 {
+      Name : "CPH8"
+      Type : "int"
+    }
+    14 {
+      Name : "CPH8.2"
+      Type : "int"
+    }
+    15 {
+      Name : "REN54P11"
+      Type : "int"
+    }
+    16 {
+      Name : "REN54P11.2"
+      Type : "int"
+    }
+    17 {
+      Name : "RF2001Fam"
+      Type : "int"
+    }
+    18 {
+      Name : "RF2001Fam.2"
+      Type : "int"
+    }
+    19 {
+      Name : ""
+      Type : "int"
+    }
+    20 {
+      Name : "RFcph 2"
+      Type : "int"
+    }
+    21 {
+      Name : "RFcph 2.2"
+      Type : "int"
+    }
+    22 {
+      Name : "fh2088"
+      Type : "int"
+    }
+    23 {
+      Name : "fh2088.2"
+      Type : "int"
+    }
+    24 {
+      Name : "REN162C04"
+      Type : "int"
+    }
+    25 {
+      Name : "REN162C04.2"
+      Type : "int"
+    }
+    26 {
+      Name : "AHTh171"
+      Type : "int"
+    }
+    27 {
+      Name : "AHTh171.2"
+      Type : "int"
+    }
+    28 {
+      Name : "INU055"
+      Type : "int"
+    }
+    29 {
+      Name : "INU055.2"
+      Type : "int"
+    }
+    30 {
+      Name : "fh2010"
+      Type : "int"
+    }
+    31 {
+      Name : "fh2010.2"
+      Type : "int"
+    }
+    32 {
+      Name : "fh2004"
+      Type : "int"
+    }
+    33 {
+      Name : "fh2004.2"
+      Type : "int"
+    }
+    34 {
+      Name : "Tot%"
+      Type : "int"
+    }
+    35 {
+      Name : "Str Used"
+      Type : "int"
+    }
+    36 {
+      Name : "lat"
+      Type : "double"
+    }
+    37 {
+      Name : "long"
+      Type : "double"
+    }
+  }
+}

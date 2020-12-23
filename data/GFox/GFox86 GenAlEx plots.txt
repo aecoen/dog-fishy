@@ -1,0 +1,46 @@
+Plots Private aleles by population?
+
+EW_df_priv
+
+Pop	CXX_402	AHT_142	REN105L03	CPH18	CPH8	REN54P11	RF2001Fam	RFcph 2	fh2088	REN162C04	AHTh171	INU055	fh2004
+E	0	1	1	2	3	3	1	2	1	4	6	1	2
+W	1	2	1	0	1	1	1	2	1	2	2	0	0
+
+HWE, need to do bonferoni correction
+Pop	Locus	DF	ChiSq	Prob	Signif
+E	CXX_402	1	0.080	0.777	ns
+E	AHT_142	21	23.909	0.297	ns
+E	REN105L03	36	25.452	0.905	ns
+E	CPH18	28	27.987	0.465	ns
+E	CPH8	21	54.782	0.000	***
+E	REN54P11	55	63.683	0.197	ns
+E	RF2001Fam	15	15.719	0.401	ns
+E	RFcph 2	6	44.712	0.000	***
+E	fh2088	28	73.940	0.000	***
+E	REN162C04	45	48.569	0.331	ns
+E	AHTh171	55	94.492	0.001	***
+E	INU055	28	34.288	0.192	ns
+E	fh2010	10	42.241	0.000	***
+E	fh2004	15	37.545	0.001	**
+W	CXX_402	3	25.840	0.000	***
+W	AHT_142	28	14.113	0.986	ns
+W	REN105L03	36	53.796	0.029	*
+W	CPH18	15	21.951	0.109	ns
+W	CPH8	10	45.727	0.000	***
+W	REN54P11	36	30.919	0.709	ns
+W	RF2001Fam	15	36.750	0.001	**
+W	RFcph 2	6	23.280	0.001	***
+W	fh2088	28	58.186	0.001	***
+W	REN162C04	28	10.934	0.998	ns
+W	AHTh171	21	29.830	0.095	ns
+W	INU055	21	25.446	0.228	ns
+W	fh2010	10	24.244	0.007	**
+W	fh2004	6	23.513	0.001	***
+					
+Key: ns=not significant, * P<0.05, ** P<0.01, *** P<0.001					
+
+
+Plot Ho v He for Hgyway E and W and total with Error bars
+
+Plot PCOA of Genetic Distance for all pops EW, 
+- this shows that the K1 individuals are clustered together, with an additional point F16-263

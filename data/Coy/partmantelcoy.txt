@@ -1,0 +1,6 @@
+NE	NW	1
+NE	SE	0
+NE	SW	1
+NW	SE	1
+NW	SW	0
+SE	SW	1

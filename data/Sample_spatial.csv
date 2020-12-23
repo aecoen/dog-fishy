@@ -1,0 +1,277 @@
+Sample,genotype,lat,long,color
+F16-110,"Coyote, K1",38.94725,-121.29358,tan3
+F16-254b,"Coyote, K1",39.3258,-120.75483,tan3
+F16-226,"Coyote, K1",39.3161,-120.828,tan3
+F16-062,"Coyote, K1",38.90921,-121.0956,tan3
+F16-250,"Coyote, K1",39.3175,-120.78008,tan3
+F16-097,"Coyote, K1",38.90111,-121.08691,tan3
+F16-103,"Coyote, K1",38.89996,-121.08953,tan3
+F16-142,"Coyote, K2",38.995444,-121.05325,navajowhite2
+F16-205,"Coyote, K2",38.99187,-121.0777,navajowhite2
+F16-207,"Coyote, K2",38.99653,-121.08658,navajowhite2
+F16-289,"Coyote, K2",39.08134698,-121.002309,navajowhite2
+F16-316b,"Coyote, K2",39.25991597,-121.078423,navajowhite2
+F16-085,"Coyote, K2",38.97664,-121.13725,navajowhite2
+F16-190,"Coyote, K2",38.96424,-121.16889,navajowhite2
+F16-065,"Coyote, No Genotype",38.8922,-121.10627,deepskyblue
+F16-178,"Coyote, No Genotype",38.96919,-121.18403,deepskyblue
+F16-116,"Coyote, No Genotype",38.89559,-121.13514,deepskyblue
+F16-060,"Coyote, No Genotype",38.90176,-121.10211,deepskyblue
+F16-221,"Coyote, No Genotype",38.99071,-121.07887,deepskyblue
+F16-286,"Coyote, No Genotype",39.09721602,-121.000389,deepskyblue
+F16-109,"Coyote, No Genotype",38.92118,-121.1104,deepskyblue
+F16-267,"Coyote, No Genotype",39.06207,-121.11436,deepskyblue
+F16-268,"Coyote, No Genotype",39.06207,-121.11436,deepskyblue
+F16-225,"Coyote, No Genotype",39.31688,-120.81556,deepskyblue
+F16-238b,"Coyote, No Genotype",39.31435,-120.79846,deepskyblue
+F16-069b,"Coyote, No Genotype",38.92125,-121.11077,deepskyblue
+F16-021,"Coyote, No Genotype",39.31834,-120.84274,deepskyblue
+F16-114,"Coyote, No Genotype",38.88474,-121.11968,deepskyblue
+F16-174,"Coyote, No Genotype",38.96328,-121.16855,deepskyblue
+F16-192,"Coyote, No Genotype",39.19088,-120.99982,deepskyblue
+F16-297,"Coyote, No Genotype",39.07102601,-121.073152,deepskyblue
+F16-303,"Coyote, No Genotype",39.07021598,-121.080471,deepskyblue
+F16-011,"Coyote, No Genotype",39.31803,-121.1462,deepskyblue
+F16-072b,"Coyote, No Genotype",38.933905,-121.184994,deepskyblue
+F16-145,"Coyote, No Genotype",38.998832,-121.052693,deepskyblue
+F16-228,"Coyote, No Genotype",39.31178,-120.82503,deepskyblue
+F16-300,"Coyote, No Genotype",39.08609801,-121.073169,deepskyblue
+F16-006,"Coyote, No Genotype",39.319,-121.13688,deepskyblue
+F16-025,"Coyote, No Genotype",39.32144,-120.83208,deepskyblue
+F16-027,"Coyote, No Genotype",39.31907,-120.8327,deepskyblue
+F16-083,"Coyote, No Genotype",38.96319,-121.14574,deepskyblue
+F16-084b,"Coyote, No Genotype",38.96319,-121.14574,deepskyblue
+F16-098,"Coyote, No Genotype",38.90155,-121.08862,deepskyblue
+F16-099,"Coyote, No Genotype",38.90167,-121.08872,deepskyblue
+F16-108,"Coyote, No Genotype",38.9018,-121.10214,deepskyblue
+F16-131,"Coyote, No Genotype",38.93461,-121.17824,deepskyblue
+F16-137,"Coyote, No Genotype",39.1247,-121.1016,deepskyblue
+F16-143,"Coyote, No Genotype",38.996574,-121.058486,deepskyblue
+F16-179,"Coyote, No Genotype",38.96919,-121.18403,deepskyblue
+F16-189,"Coyote, No Genotype",38.96832,-121.19409,deepskyblue
+F16-242,"Coyote, No Genotype",39.24443,-120.89095,deepskyblue
+F16-246,"Coyote, No Genotype",39.24655,-120.87147,deepskyblue
+F16-293,"Coyote, No Genotype",39.07006603,-121.082127,deepskyblue
+F16-299b,"Coyote, No Genotype",39.08733803,-121.074532,deepskyblue
+F16-304,"Coyote, No Genotype",39.07109398,-121.08304,deepskyblue
+F16-305,"Coyote, No Genotype",39.33609699,-120.967484,deepskyblue
+F16-309,"Coyote, No Genotype",39.31510502,-120.936852,deepskyblue
+F16-310,"Coyote, No Genotype",39.31436699,-120.93799,deepskyblue
+F16-257,"Coyote, No Genotype",39.3284,-120.76036,deepskyblue
+F16-101,"Coyote, No Genotype",38.90086,-121.08896,deepskyblue
+F16-253,"Coyote, No Genotype",39.32547,-120.75457,deepskyblue
+F16-314,"Coyote, No Genotype",39.26309899,-121.065675,deepskyblue
+F16-034,"Gray Fox, K1",39.13608,-121.04546,darkorange3
+F16-160,"Gray Fox, K1",38.99155,-121.07152,darkorange3
+F16-187,"Gray Fox, K1",38.96917,-121.19759,darkorange3
+F16-222,"Gray Fox, K1",39.31669,-120.81465,darkorange3
+F16-258,"Gray Fox, K1",39.32802,-120.76041,darkorange3
+F16-263,"Gray Fox, K1",39.05651,-121.11108,darkorange3
+F16-040,"Gray Fox, K1",39.30117,-120.91896,darkorange3
+F16-158,"Gray Fox, K1",38.99254,-121.07275,darkorange3
+F16-048,"Gray Fox, K2",39.00009,-121.13532,dimgrey
+F16-049,"Gray Fox, K2",39.00009,-121.13532,dimgrey
+F16-063,"Gray Fox, K2",38.89212,-121.10624,dimgrey
+F16-066,"Gray Fox, K2",38.8922,-121.10624,dimgrey
+F16-081,"Gray Fox, K2",38.96327,-121.14464,dimgrey
+F16-086,"Gray Fox, K2",38.97282,-121.13525,dimgrey
+F16-087,"Gray Fox, K2",38.98433,-121.11286,dimgrey
+F16-095,"Gray Fox, K2",38.973913,-121.13528,dimgrey
+F16-105,"Gray Fox, K2",38.91504,-121.08819,dimgrey
+F16-106,"Gray Fox, K2",38.89308,-121.10735,dimgrey
+F16-115,"Gray Fox, K2",38.89559,-121.13514,dimgrey
+F16-119b,"Gray Fox, K2",38.89398,-121.13244,dimgrey
+F16-121,"Gray Fox, K2",38.89363,-121.13145,dimgrey
+F16-126,"Gray Fox, K2",38.97564,-121.13702,dimgrey
+F16-128,"Gray Fox, K2",38.95054,-121.12597,dimgrey
+F16-135,"Gray Fox, K2",39.12271,-121.10601,dimgrey
+F16-136,"Gray Fox, K2",39.1247,-121.1016,dimgrey
+F16-138,"Gray Fox, K2",39.12332,-121.10886,dimgrey
+F16-139,"Gray Fox, K2",38.992,-121.05205,dimgrey
+F16-140,"Gray Fox, K2",38.992907,-121.050195,dimgrey
+F16-146,"Gray Fox, K2",38.98933,-121.06999,dimgrey
+F16-148,"Gray Fox, K2",38.89308,-121.10735,dimgrey
+F16-151,"Gray Fox, K2",38.97995,-121.07121,dimgrey
+F16-152,"Gray Fox, K2",38.98054,-121.07294,dimgrey
+F16-153,"Gray Fox, K2",38.9864,-121.07432,dimgrey
+F16-166,"Gray Fox, K2",39.16623,-120.95308,dimgrey
+F16-167,"Gray Fox, K2",39.16557,-120.95284,dimgrey
+F16-171,"Gray Fox, K2",39.16568,-120.9688,dimgrey
+F16-177,"Gray Fox, K2",38.96603,-121.17032,dimgrey
+F16-180,"Gray Fox, K2",38.96603,-121.17032,dimgrey
+F16-184,"Gray Fox, K2",38.97648,-121.20338,dimgrey
+F16-188,"Gray Fox, K2",38.96889,-121.19733,dimgrey
+F16-196,"Gray Fox, K2",39.17745,-120.99669,dimgrey
+F16-197,"Gray Fox, K2",39.17721,-120.99743,dimgrey
+F16-212,"Gray Fox, K2",39.00313,-121.05651,dimgrey
+F16-215b,"Gray Fox, K2",39.00099,-121.06932,dimgrey
+F16-219,"Gray Fox, K2",38.99071,-121.07887,dimgrey
+F16-220,"Gray Fox, K2",38.99071,-121.07887,dimgrey
+F16-224,"Gray Fox, K2",39.31688,-120.81556,dimgrey
+F16-227,"Gray Fox, K2",39.31178,-120.82503,dimgrey
+F16-230,"Gray Fox, K2",39.3095,-120.82089,dimgrey
+F16-232,"Gray Fox, K2",39.31086,-120.81734,dimgrey
+F16-234,"Gray Fox, K2",39.30968,-120.80936,dimgrey
+F16-237b,"Gray Fox, K2",39.31275,-120.80121,dimgrey
+F16-241,"Gray Fox, K2",39.24273,-120.91092,dimgrey
+F16-244,"Gray Fox, K2",39.24497,-120.88875,dimgrey
+F16-249,"Gray Fox, K2",39.3177,-120.7806,dimgrey
+F16-264,"Gray Fox, K2",39.06398,-121.11411,dimgrey
+F16-272b,"Gray Fox, K2",39.06225803,-121.006035,dimgrey
+F16-275b,"Gray Fox, K2",39.06815998,-121.010203,dimgrey
+F16-277b,"Gray Fox, K2",39.0759,-121.004588,dimgrey
+F16-279,"Gray Fox, K2",39.08783399,-121.001564,dimgrey
+F16-285b,"Gray Fox, K2",39.09721602,-121.000389,dimgrey
+F16-193,"Gray Fox, K2",39.18757,-120.99966,dimgrey
+F16-038,"Gray Fox, K2",39.31054,-120.91349,dimgrey
+F16-100,"Gray Fox, K2",38.90069,-121.08891,dimgrey
+F16-154,"Gray Fox, K2",38.99131,-121.07522,dimgrey
+F16-156,"Gray Fox, K2",38.99244,-121.0754,dimgrey
+F16-161,"Gray Fox, K2",38.99125,-121.0716,dimgrey
+F16-168,"Gray Fox, K2",39.16517,-120.95253,dimgrey
+F16-243,"Gray Fox, K2",39.24443,-120.89095,dimgrey
+F16-252b,"Gray Fox, K2",39.32089,-120.75702,dimgrey
+F16-302,"Gray Fox, K2",39.07021598,-121.080471,dimgrey
+F16-094,"Gray Fox, K2",38.97514,-121.1366,dimgrey
+F16-124,"Gray Fox, K2",38.98299,-121.13543,dimgrey
+F16-130,"Gray Fox, K2",39.08272798,-121.001839,dimgrey
+F16-150,"Gray Fox, K2",38.98562,-121.074,dimgrey
+F16-165,"Gray Fox, K2",39.16776,-120.95464,dimgrey
+F16-235,"Gray Fox, K2",39.30968,-120.80936,dimgrey
+F16-075,"Gray Fox, K2",38.93782,-121.17426,dimgrey
+F16-236,"Gray Fox, K2",39.30971,-120.8064,dimgrey
+F16-248,"Gray Fox, K2",39.32035,-120.78627,dimgrey
+F16-260,"Gray Fox, K2",39.05007,-121.10553,dimgrey
+F16-308,"Gray Fox, K2",39.31577104,-120.936773,dimgrey
+F16-002,"Gray Fox, K2",39.10268,-121.10411,dimgrey
+F16-076,"Gray Fox, K2",38.93941,-121.17202,dimgrey
+F16-118b,"Gray Fox, K2",38.89418,-121.13282,dimgrey
+F16-127,"Gray Fox, K2",38.96864,-121.13524,dimgrey
+F16-206,"Gray Fox, K2",38.99187,-121.0777,dimgrey
+F16-269b,"Gray Fox, K2",39.06147,-121.11466,dimgrey
+F16-271,"Gray Fox, K2",39.05432,-121.10983,dimgrey
+F16-325b,"Gray Fox, K2",39.24669402,-121.088339,dimgrey
+F16-164,"Gray Fox, No Genotype",39.16869,-120.95546,palegreen3
+F16-233,"Gray Fox, No Genotype",39.30974,-120.81332,palegreen3
+F16-262,"Gray Fox, No Genotype",39.05464,-121.1102,palegreen3
+F16-294,"Gray Fox, No Genotype",39.07004901,-121.078157,palegreen3
+F16-306,"Gray Fox, No Genotype",39.33566297,-120.955152,palegreen3
+F16-162,"Gray Fox, No Genotype",39.14699,-120.96705,palegreen3
+F16-173,"Gray Fox, No Genotype",39.13725,-120.95596,palegreen3
+F16-204,"Gray Fox, No Genotype",38.99187,-121.0777,palegreen3
+F16-320,"Gray Fox, No Genotype",39.25702798,-121.086674,palegreen3
+F16-020,"Gray Fox, No Genotype",39.31689,-120.85162,palegreen3
+F16-033,"Gray Fox, No Genotype",39.05973,-121.14791,palegreen3
+F16-047b,"Gray Fox, No Genotype",39.25009,-121.20783,palegreen3
+F16-070,"Gray Fox, No Genotype",38.91975,-121.11154,palegreen3
+F16-077,"Gray Fox, No Genotype",38.93944,-121.17049,palegreen3
+F16-120,"Gray Fox, No Genotype",38.89398,-121.13244,palegreen3
+F16-129,"Gray Fox, No Genotype",38.97597,-121.13731,palegreen3
+F16-291,"Gray Fox, No Genotype",39.07107202,-121.009596,palegreen3
+F16-313,"Gray Fox, No Genotype",39.26682701,-121.060747,palegreen3
+F16-211,"Gray Fox, No Genotype",39.00016,-121.07462,palegreen3
+F16-290,"Gray Fox, No Genotype",39.07107202,-121.009596,palegreen3
+F16-067,"Gray Fox, No Genotype",38.88968,-121.10055,palegreen3
+F16-096,"Gray Fox, No Genotype",38.97123,-121.13557,palegreen3
+F16-104,"Gray Fox, No Genotype",38.90837,-121.08592,palegreen3
+F16-122,"Gray Fox, No Genotype",38.89363,-121.13145,palegreen3
+F16-134,"Gray Fox, No Genotype",39.12344,-121.10879,palegreen3
+F16-194,"Gray Fox, No Genotype",39.18309,-120.99769,palegreen3
+F16-200,"Gray Fox, No Genotype",38.98475,-121.07499,palegreen3
+F16-218b,"Gray Fox, No Genotype",38.99071,-121.07887,palegreen3
+F16-261,"Gray Fox, No Genotype",39.05006,-121.106,palegreen3
+F16-276b,"Gray Fox, No Genotype",39.07104302,-121.009329,palegreen3
+F16-093,"Gray Fox, No Genotype",38.97554,-121.13701,palegreen3
+F16-107,"Gray Fox, No Genotype",38.89811,-121.10415,palegreen3
+F16-133,"Gray Fox, No Genotype",39.11909,-121.10775,palegreen3
+F16-203,"Gray Fox, No Genotype",38.99078,-121.07887,palegreen3
+F16-209,"Gray Fox, No Genotype",39.00071,-121.07667,palegreen3
+F16-216b,"Gray Fox, No Genotype",38.99071,-121.07887,palegreen3
+F16-217b,"Gray Fox, No Genotype",38.99071,-121.07887,palegreen3
+F16-318b,"Gray Fox, No Genotype",39.257157,-121.082867,palegreen3
+F16-003,"Gray Fox, No Genotype",39.10237,-121.10484,palegreen3
+F16-019b,"Gray Fox, No Genotype",39.31661,-120.85317,palegreen3
+F16-073,"Gray Fox, No Genotype",38.93173,-121.18127,palegreen3
+F16-074,"Gray Fox, No Genotype",38.93174,-121.18124,palegreen3
+F16-078,"Gray Fox, No Genotype",38.9384,-121.13994,palegreen3
+F16-088,"Gray Fox, No Genotype",38.98525,-121.12826,palegreen3
+F16-132,"Gray Fox, No Genotype",39.11909,-121.10775,palegreen3
+F16-155,"Gray Fox, No Genotype",38.9918,-121.07468,palegreen3
+F16-210,"Gray Fox, No Genotype",39.00016,-121.07462,palegreen3
+F16-213b,"Gray Fox, No Genotype",39.00049,-121.06111,palegreen3
+F16-281,"Gray Fox, No Genotype",39.08783399,-121.001564,palegreen3
+F16-322b,"Gray Fox, No Genotype",39.25115604,-121.092708,palegreen3
+F16-326,"Gray Fox, No Genotype",39.25316803,-121.088875,palegreen3
+F16-037,"Gray Fox, No Genotype",39.1373,-121.04389,palegreen3
+F16-046,"Gray Fox, No Genotype",39.25009,-121.20783,palegreen3
+F16-071,"Gray Fox, No Genotype",38.93473,-121.19006,palegreen3
+F16-080b,"Gray Fox, No Genotype",38.938107,-121.118446,palegreen3
+F16-092,"Gray Fox, No Genotype",38.9757,-121.13787,palegreen3
+F16-125b,"Gray Fox, No Genotype",38.97564,-121.13702,palegreen3
+F16-157,"Gray Fox, No Genotype",38.99244,-121.0754,palegreen3
+F16-172,"Gray Fox, No Genotype",39.16568,-120.9688,palegreen3
+F16-266,"Gray Fox, No Genotype",39.06207,-121.11436,palegreen3
+F16-278b,"Gray Fox, No Genotype",39.079117,-121.002023,palegreen3
+F16-284,"Gray Fox, No Genotype",39.09329999,-121.000964,palegreen3
+F16-311,"Gray Fox, No Genotype",39.31427001,-120.93798,palegreen3
+F16-312,"Gray Fox, No Genotype",39.31427001,-120.93798,palegreen3
+F16-317b,"Gray Fox, No Genotype",39.25926302,-121.082421,palegreen3
+F16-001,"Gray Fox, No Genotype",39.10471,-121.09354,palegreen3
+F16-004,"Gray Fox, No Genotype",39.10617,-121.08917,palegreen3
+F16-005,"Gray Fox, No Genotype",39.11227,-121.09946,palegreen3
+F16-007,"Gray Fox, No Genotype",39.31899,-121.13977,palegreen3
+F16-008,"Gray Fox, No Genotype",39.31797,-121.14559,palegreen3
+F16-009,"Gray Fox, No Genotype",39.31927,-121.15171,palegreen3
+F16-010,"Gray Fox, No Genotype",39.31931,-121.15142,palegreen3
+F16-012b,"Gray Fox, No Genotype",39.00639,-121.10605,palegreen3
+F16-013,"Gray Fox, No Genotype",39.00639,-121.10605,palegreen3
+F16-014,"Gray Fox, No Genotype",39.00865,-121.10184,palegreen3
+F16-015,"Gray Fox, No Genotype",39.00865,-121.10184,palegreen3
+F16-017,"Gray Fox, No Genotype",39.00865,-121.10184,palegreen3
+F16-018,"Gray Fox, No Genotype",39.02809,-121.09028,palegreen3
+F16-022,"Gray Fox, No Genotype",39.31834,-120.84274,palegreen3
+F16-023,"Gray Fox, No Genotype",39.31898,-120.83876,palegreen3
+F16-024,"Gray Fox, No Genotype",39.31905,-120.83796,palegreen3
+F16-026,"Gray Fox, No Genotype",39.32131,-120.83192,palegreen3
+F16-030b,"Gray Fox, No Genotype",39.06088,-121.15925,palegreen3
+F16-032,"Gray Fox, No Genotype",39.05321,-121.15563,palegreen3
+F16-035b,"Gray Fox, No Genotype",39.14515,-121.03266,palegreen3
+F16-036,"Gray Fox, No Genotype",39.14345,-121.03681,palegreen3
+F16-041,"Gray Fox, No Genotype",39.222,-121.19832,palegreen3
+F16-042,"Gray Fox, No Genotype",39.22014,-121.19009,palegreen3
+F16-043,"Gray Fox, No Genotype",39.22014,-121.19009,palegreen3
+F16-044,"Gray Fox, No Genotype",39.22014,-121.19009,palegreen3
+F16-045,"Gray Fox, No Genotype",39.25106,-121.20731,palegreen3
+F16-050,"Gray Fox, No Genotype",38.99474,-121.13535,palegreen3
+F16-064,"Gray Fox, No Genotype",38.89212,-121.10623,palegreen3
+F16-068,"Gray Fox, No Genotype",38.89241,-121.09298,palegreen3
+F16-079b,"Gray Fox, No Genotype",38.95147,-121.12236,palegreen3
+F16-082,"Gray Fox, No Genotype",38.96317,-121.1499,palegreen3
+F16-089,"Gray Fox, No Genotype",38.98824,-121.13528,palegreen3
+F16-141,"Gray Fox, No Genotype",38.994417,-121.051155,palegreen3
+F16-147,"Gray Fox, No Genotype",38.98932,-121.06866,palegreen3
+F16-149,"Gray Fox, No Genotype",38.98901,-121.07336,palegreen3
+F16-159,"Gray Fox, No Genotype",38.99212,-121.0722,palegreen3
+F16-169,"Gray Fox, No Genotype",39.16604,-120.95738,palegreen3
+F16-170,"Gray Fox, No Genotype",39.17136,-120.96034,palegreen3
+F16-185,"Gray Fox, No Genotype",38.97365,-121.20828,palegreen3
+F16-195,"Gray Fox, No Genotype",39.17739,-120.99472,palegreen3
+F16-198,"Gray Fox, No Genotype",39.1753,-120.99904,palegreen3
+F16-201,"Gray Fox, No Genotype",38.98746,-121.07819,palegreen3
+F16-202,"Gray Fox, No Genotype",38.99078,-121.07887,palegreen3
+F16-208,"Gray Fox, No Genotype",39.00059,-121.07946,palegreen3
+F16-231,"Gray Fox, No Genotype",39.30966,-120.82041,palegreen3
+F16-245,"Gray Fox, No Genotype",39.24655,-120.87147,palegreen3
+F16-247,"Gray Fox, No Genotype",39.23965,-120.90263,palegreen3
+F16-255,"Gray Fox, No Genotype",39.32728,-120.75962,palegreen3
+F16-259,"Gray Fox, No Genotype",39.05009,-121.10542,palegreen3
+F16-273,"Gray Fox, No Genotype",39.06539798,-121.007995,palegreen3
+F16-280,"Gray Fox, No Genotype",39.08783399,-121.001564,palegreen3
+F16-282,"Gray Fox, No Genotype",39.08783399,-121.001564,palegreen3
+F16-283,"Gray Fox, No Genotype",39.09091601,-121.001473,palegreen3
+F16-288,"Gray Fox, No Genotype",39.08134698,-121.002309,palegreen3
+F16-292,"Gray Fox, No Genotype",39.07107202,-121.009596,palegreen3
+F16-298,"Gray Fox, No Genotype",39.08104104,-121.072948,palegreen3
+F16-307,"Gray Fox, No Genotype",39.336012,-120.936793,palegreen3
+F16-323b,"Gray Fox, No Genotype",39.24644399,-121.092261,palegreen3
+SR-49,State Route 49,39.24644399,-121.092261,red3
