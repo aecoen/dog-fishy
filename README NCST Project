@@ -1,0 +1,226 @@
+README For NCST Projects
+_________________________________________________________________
+
+TO DO:
+- GF86 K2: 187, 222, 263, 040, 034, 160, 258, and 158 - check these for relatedness squew
+   ANSWER!!!! all these are missing the CXX.402 allele, none of the others are, drop this allele,   
+   reanalyze based on this
+- GenAlEx
+  - Try Spatial
+  - Mantel
+  - PCoA
+- 
+- Check 001, 012 date and location, 
+
+- Maps. 
+    - trying different cex values for k1.geno and k2.geno for plotting, 3 ok, trying 0.5 step       
+      increases
+    - add traffic rates to 49
+    - culverts???
+    - see if K2 for GFOX is spatial or something else
+    - in genotyped column, designate K1, K2, Species (remove intial plot of points, only Specified points)
+    - See about constructing a way to designate repeated individuals, different symbols?
+    
+Notes on error bars
+
+### Error Bars
+
+First, see page 61 of the ggplot2 book.
+
+For geoms that display an error, you need a column in your dataframe that explicitly contains the standard error, and then you're going to add/subtract that SE from each y value by using the `ymin` and `ymax` arguments within the `aesthetic()` call:
+
+```{r errorbars}
+
+y <- c(18, 11, 16)
+df <- data.frame(animals = c("cats", "dogs", "orangutans"), y = y, se = c(1.2, 0.5, 1.0))
+df
+
+base <- ggplot(df, aes(x = animals, y = y))
+base
+base <- base + geom_bar(stat = "identity", aes(fill = animals)) + ylim(c(0, 20))
+base
+base + geom_crossbar(aes(ymin = y - se, ymax = y + se))
+
+base + geom_errorbar(aes(ymin = y - se, ymax = y + se, width = 0.5))
+
+base + geom_pointrange(aes(ymin = y - se, ymax = y + se))
+
+
+base + geom_smooth(stat = "identity")
+
+base + geom_bar(stat = "identity") + geom_errorbar(aes(ymin= y-se, ymax= y+se, width = 0.5))
+
+base + geom_linerange(aes(ymin = y - se, ymax = y + se))
+
+base + geom_ribbon(aes(ymin = y - se, ymax = y + se), alpha = 0.5)
+
+
+------------------------------------ DATA SETUP -----------------------------------------
+
+1) Use cty b to determine source species
+
+2) For Gray Fox, use Plex 1 and 2. Coyotes use RFscat Plex 3 and 4
+
+3) Score microsats using STRand
+
+4) Build consensus genotypes for successful samples
+
+------------------------------------ STRUCTURE SETUP ------------------------------------
+
+5) Feed consensus genotypes for > 85% complete loci into Allelematch script
+  - use to determine the number of unique individuals based on the recommended allele mismatch
+
+6) Remove sex marker genotype, input text file into STRUCTURE
+  - Make sure the individual column has no header
+  - If locational coordinates are on the sheet, make sure to note in setup
+  - In Parameters select Infer lambda and Infer alpha
+  - Burnin 10,000, run 100,000, ten iterations per K for test run
+  - Burnin 10,000, run 100,000, ______________ for figure
+  
+7) Take resulting Results folder, zip and import into Structure Harvester
+  - use to determine most likely K value
+  - Download Clumpp indfile for most likely K
+
+8) CLUMPP to create figure file for use in ggplot to make a more controled graphic
+  - should be able to use distruct to create intial files to feed into CLUMPP, but not working on this computer, must do manually
+   - save indfile to a text file, copy into example indfile, save as "Name of Structure Run".indfile
+
+  a) Creating INDQ file from indfile: 
+    - open param file for CLUMPP in notepad 
+    - edit names of files accordingly and set to correct number of individuals, populations, etc.
+    - Run CLUMMP in same folder as indfile and param file (will not work otherwise)
+
+  b) Creating POPQ file:  (need to see if this is needed for the stacked plot)
+    - 
+
+9) Create plot using STRUCTURE Stacked Plot Script
+ - edit individuals based on spatial location, or Pop assignment
+
+------------------------------------ MAPPING FIGURE --------------------------------------
+
+10) Plotting sample locations on map
+  - readin data, designate by genotype
+  - read in road, must be a shx file, shp alone does not work
+  - would be good to see if I can specify a specific highway, not all
+
+
+----------------------------------- POP GEN ANALYSIS ------------------------------------GenAlEx (excel based) allows:
+ - Frequency Based Statistic Procedures
+    - Frequency
+    - Disequilibrium
+    - HWE
+    - Pairwise Pops
+    - Relatedness
+    - Pairwise
+ - Distance Based
+    - Distance
+    - Genetic Distance
+    - Geographic Distance
+    - Genetic by Pop
+    - Mantel
+    - Spatial Autocorrelation
+    - Single Pop
+
+Format:
+A1 = Number of Loci
+B1 = Number of Individuals
+c1 = Number of Populations
+D-n1 = Number of Individuals within each pop
+D-n2 = Names of pops
+
+
+From adegenet may want to use:
+
+ - genind, genpop
+ - importing data (import2genid, can import from GENEPOP and STRUCTURE)
+ - HWE.test.genind: performs HWE test for all populations and loci combinations
+ - dist.genpop: computes 5 genetic distances among populations.
+ - makefreq: returns a table of allelic frequencies from a genpop object.
+ - pop sets the population of a set of genotypes.
+ - spca: implements Jombart et al. (2008) spatial Principal Component Analysis
+ - global.rtest: implements Jombart et al. (2008) test for global spatial structures
+ - local.rtest: implements Jombart et al. (2008) test for local spatial structures
+ - propShared: computes the proportion of shared alleles in a set of genotypes (i.e. from     a genind object)
+ - Hs: computes the average expected heterozygosity by population in a genpop. Classically      Used as a measure of genetic diversity.
+
+From PopGenReport may want to use:
+
+ - allel.rich: Calculates the allelic richness for a genind object
+ - allele.dist: Counts and visualises allele frequencies across loci and subpopulations
+ - gd.kosman: Individual genetic distance calculation based on Kosman & Leonhard 2005
+ - gd.smouse Individual genetic distance calculation based on Smouse and Peakall 1999
+ - pairwise.fstb: Calculates pairwise fsts using a genind object (very fast)
+ - pairwise.propShared: Calculates proportion of shared alleles per pairs of populations
+ - popgenreport This is the main function of the package. It analyses an object of class
+genind and then creates a report containing the results of the analysis.
+There are several routines that can be optionally included in the
+analysis and there are multiple output options including a PDF with
+the report, R-code and an object (fname.results) containing all of
+the results, which can be used for further analyses.
+ -  pops2genind: Function converts pops to a genind object
+ -  read.genetable: Function to convert textfiles into a genind object (the format required for popgenreport)
+ -  spautocor Spatial autocorrelation following Smouse and Pekall 1999
+
+From ecodist
+
+ - distance Calculate dissimilarity/distance metrics
+ -  mantel Mantel test
+ - mgram Mantel correlogram
+ - plot.mgram Plot a Mantel correlogram
+ - pmgram Partial Mantel correlogram
+
+From pegas - may need to import data as from a matrix or dataframe using `alleles2loci` or read.loci from a txt file
+
+ - as.loci - allows conversion between genid, send back with genid2loci(x)
+ - Fst - F-Statistics
+ - haploFreq - Haplotype Frequencies With a Covariate
+ - haplotype - Haplotype Extraction and Frequencies can be plotted
+ - heterozygosity -  Heterozygosity at a Locus Using Gene Frequencies where x  is a factor
+ - hw.test Test - of Hardy–Weinberg Equilibrium
+ - LD - Linkage Disequilibrium
+ - LDscan - Multi-Locus Linkage Disequilibrium of a matrix, must be phased
+ - MMD - Mismatch Distribution of pairwise distances
+ - 
+ 
+From related
+ - readgenotypedata - read genotype data into a dataframe
+ - grouprel - calculate the average relatedness within each of the specified groups
+
+From Demerelate
+ - allele.sharing - Calculates allele sharing rates or similarity estimators for two populations
+ - Emp.calc - Function to calculate pairwise relatedness within populations based on allele sharing.
+ - F.stat - Head function to calculate F statistics
+ - Fis - Calculates allele and genotype frequencies
+ - Fis.calc - Calculation of F is empirical and bootstrapped values
+ - geo.dist - Calculates geographic distances.
+ - input.txt - Reads different types of tables and returns an object
+ - Lin.reg.distance Linear regression of empirical genetic relatedness with geographic distance.
+ - Loci.test Analysis on differences in mean relatedness based on number of loci used for calculations
+ - Similarity.Index - Pairwise genetic similarity calculated based on different relatedness estimators or allele shraing indices
+ - 
+
+
+Binferroni correction
+- p.adjust(p, method = p.adjust.methods, n = length(p))
+
+p.adjust.methods
+# c("holm", "hochberg", "hommel", "bonferroni", "BH", "BY",
+#   "fdr", "none")
+
+
+
+------------------------------ Frequency Based Statitistcis -----------------------------
+
+1) Creating a genid object
+   - copied project data file from structure run, add .stru suffix 
+   - cannot have . in marker names, means replace with _
+   - set NA value to -99
+   - DO NOT label population column, creates an error
+
+2) allele.rich requires there to be a population column in the genid object
+   
+
+ 
+ 
+ 
+ 

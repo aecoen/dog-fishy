@@ -1,0 +1,183 @@
+---
+title: "Coyote_BA_Sac_'15"
+author: "Coen, Amanda"
+date: "May 15, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(root.dir = normalizePath("../"))
+knitr::opts_chunk$set(echo = FALSE)
+library(dplyr)
+library(readr)
+library(ggplot2)
+library(dynamicTreeCut)
+library(allelematch)
+library(reshape2)
+library(grid)
+library(rgdal)  # for vector work; sp package will load with rgdal
+library(raster) # for metadata/attributes- vectors or rasters
+library(rasterVis)
+library(leaflet) # interactive maps
+library(viridis) # color palettes
+library(ggsn)
+```
+
+Read in the data as a dataframe
+```{r, Coy_consensus}
+data_85 <- as.data.frame(read.table("Projects/NCST/data/Coy/Coy_Consensus_201604.txt", header=T, sep="\t")) #needs to be saved as a text file
+
+#Create a formatted object for analysis with other allematch tools
+CoyData_85_2016 <- amDataset(data_85, missingCode = "-99", indexColumn = 1, metaDataColumn = NULL)
+
+```
+
+Once read in as amDataset, need to find the optimal allele mismatch value 
+
+`amUniqueProfile` Determines optimal parameter values for the identification of unique genotypes
+
+`guessOptimum`  If `TRUE` will guess the optimal value of the parameter being profiled by examining the profile for the first minimum associated with a drop in multiple matches as sensitivity to differences among samples decreases.
+
+`consensusMethod` The method (an integer) used to determine the consensus multilocus genotype from a cluster of multilocus genotypes. See amCluster for details.
+
+```{r, opt_params}
+
+amUniqueProfile(CoyData_85_2016, guessOptim=T, consensusMethod=1)  #will guess the optimal value of the parameter being profiled by examining the profile for the first minimum associated with a drop in multiple matches as sensitivity to differences among samples decreases.
+
+```
+
+CoyData_85 shows optimal mismatch is 4 suggests 77 unique
+
+```{r, coy_output}
+
+Coy85_2016_mismatch4 <- amPairwise(CoyData_85_2016, alleleMismatch = 4)
+
+amCSV.amPairwise(Coy85_2016_mismatch4, "Projects/NCST/data/Coy/Coy85_Allelematch_14L4M_201604.csv")
+
+```
+Results currently show for 85%: 77 individuals
+F15-032 & F15-036 are the same --> Use F15-036
+F15-177 & F15-178 are the same --> Use F15-178
+F15-242 & F15-243 are the same --> Use F15-243
+F15-020 & F15-046 are the same --> Use F15-020
+F15-167 & F15-179 are the same --> Use F15-167
+F15-193 & F15-191 are the same --> Use F15-193
+F15-152 & F15-153 are the same --> Use F15-152
+F155 differs from 152/153 by one allele (210 vs 180 for REN169O18coyote)
+F15-013 & F15-016 are the same --> Use F15-013
+F15-119 & F15-121 are the same --> Use F15-121
+
+Create a csv file cleaning up the Allelematch results, remove K9_AMELO
+  - `Coy85_201604_Alm_14L4M_20170515.csv` to be used for STRUCTURE Run
+  - Separate BA and Sac individuals before run
+  - Use csv file in STRUCTURE, zip Results file and import in STRUCTURE Harvester to determine most likely K value
+
+Download Clumpp indfile, use in CLUMPP to generate INDQ files for use in Stacked Bar Plot   
+
+```{r, r_colorsets}
+CoyBA_cols <- c("orange1","olivedrab2")
+CoySac_cols <- c("deepskyblue2", "mediumorchid")
+
+```
+
+```{r, coy_Runs}
+
+Coy85_BA_14LM4 <- read.table("Projects/NCST/data/Coy/Coy_BA_2015.txt", header = TRUE)
+
+Coy85_Sac_14LM4 <- read.table("Projects/NCST/data/Coy/Coy_Sac_2015.txt", header = TRUE)
+
+```
+
+```{r, melt}
+
+#sorted
+
+Coy85BA_14LM4.m <- melt(Coy85_BA_14LM4, id.var="ID")
+
+Coy85Sac_14LM4.m <- melt(Coy85_Sac_14LM4, id.var="ID")
+
+```
+
+```{r, plot}
+
+dev.new()
+ggplot(Coy85Sac_14LM4.m, 
+           aes(x = ID,   #Just sets your x and y values
+           y = value, 
+           fill = variable, #fill determines groups
+           width = 1, # is the width of the bar (from 0 to 1, the latter has no spacing)
+           ymax=1.0, 
+           ymin=0.0)) + #xmax=20, #xmin=0.0)) +     
+  geom_bar(stat = "identity" , colour = "white") + #makes the sep. lines between bars white
+  #scale_fill_manual(values=CoyBA_cols) +  #Sets the colours (assigned by fill = variable above)
+  scale_fill_manual(values=CoySac_cols) +  
+  coord_cartesian(ylim = c(0,1)) + #Set your Y limit to be bound 0-1
+  #ggtitle("Bay Area Coyote K=2") +
+  ggtitle("Sacramento Area Coyote K=2") +
+  theme(plot.title = element_text(color="black", size=18, face="bold", hjust=0.5)) +
+  theme(aspect.ratio = 3/4) +
+  ylab("Probability of assignment\n") + #added newline char to increase space between label
+  theme(axis.title.y = element_text(color="black", size=15, face="bold", vjust=0)) + 
+  theme(axis.title.x = element_text(color="black", size=15, face="bold")) +
+  theme(axis.text.y = element_text(color="black", size=10)) +
+  theme(axis.ticks.x = element_blank()) +
+  theme(legend.title = element_blank()) +
+  theme(axis.text.x = element_text(face = "italic", angle = 45, vjust=0.9, hjust=1)) + #now labels are in numeric order...grrr
+  #scale_x_discrete(limits= Coy85_BA_14LM4$ID) +
+  scale_x_discrete(limits= Coy85_Sac_14LM4$ID) +
+  #xlab("Individuals n=47") + # this is where the individual IDs disappear
+  #xlab("Individuals n=47") +
+  theme(axis.text.x = element_blank()) + #+
+  #annotation_custom(grob=textGrob("E680",gp=gpar(fontsize=12, col="navyblue")), xmin=3,xmax=3,ymin=-0.05, ymax=-0.05) +
+  #theme(axis.ticks.x = element_blank()) #+
+  theme(panel.background = element_blank()) +
+  geom_vline(xintercept = c(4.5, 21.5), lwd=0.5, colour="black", lty=1) +
+  #geom_vline(xintercept = c(6.5, 10.5), lwd=0.5, colour="black", lty=1) + #use for creating ticks separating pops
+  guides(fill=FALSE)
+
+```
+
+```{r coy_map}
+
+coy <- read.csv("Projects/NCST/data/Coy/Coy_Microsat_2015_spatial.csv")
+
+# Check how many NA's in spatial data
+coy %>% filter(is.na(Lat)) %>% tally # no NAs!
+
+# make the data "spatial":
+coy.SP <- SpatialPointsDataFrame(coords = coy[, c("Long", "Lat")], data = coy) #will not work with NAs
+
+# check the CRS
+raster::crs(coy.SP) # should be NA
+clats <-CRS("+init=epsg:3717") # set the default for lat/longs  4326 = WGS 84 CRS projection EPSG:3717
+proj4string(coy.SP) <- clats # assign the CRS we want to use
+raster::crs(coy.SP) # should be the full lats obj now
+
+# Transform to UTMs (or whatever)
+cutms <- CRS("+init=epsg:32610") # zone 10 UTMs
+
+coy_utms.SP<-spTransform(x = coy.SP, CRSobj = cutms)
+
+raster::crs(coy_utms.SP) # should be the full UTMs now
+
+# add UTMs as cols to dataframe?
+coy.SP@data$utm_y <- coy_utms.SP@coords[,1]
+coy.SP@data$utm_x <- coy_utms.SP@coords[,2]
+
+names(coy.SP) <- strtrim(names(coy.SP),10)
+
+```
+
+```{r, relmat}
+rel_df <- data.frame(region = c("EB", "EB", "EB", "Sac", "Sac", "Sac"), location = c("E680", "W680", "S580-W680", "N80", "S80-N50", "S50"), relatedness = c(0.13, 0.18, 0.15, 0.05, 0.05, 0.24))
+
+
+ggplot(rel_df, aes(location, relatedness, ymin=0.0, ymax=0.25)) +
+         geom_point() +
+         scale_x_discrete(limits= rel_df$location) +
+         theme(text = element_text(size=12)) +
+         theme(panel.background = element_blank()) 
+
+plot(rel_df$relatedness)
+```
+

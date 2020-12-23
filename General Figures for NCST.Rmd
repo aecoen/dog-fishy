@@ -1,0 +1,778 @@
+---
+title: "NCST Draft Figures"
+author: "Coen, Amanda"
+date: "March 25, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(root.dir = normalizePath("../"))
+knitr::opts_chunk$set(echo = FALSE)
+library(dplyr)
+library(devtools)
+library(plyr)
+library(maptools)
+library(readr)
+library(ggplot2)
+library(dynamicTreeCut)
+library(allelematch)
+library(reshape2)
+library(grid)
+library(rgdal)  # for vector work; sp package will load with rgdal
+library(raster) # for metadata/attributes- vectors or rasters
+library(rasterVis)
+library(leaflet) # interactive maps
+library(viridis) # color palettes
+library(maps)
+library(mapdata)  
+suppressPackageStartupMessages(library(ggmap)) # ggplot functionality for maps
+library(ggsn) # for scale bars/north arrows in ggplots
+
+```
+
+Make a graph of Samples collected
+```{r, samples}
+ID <- c("Cy","Gf", "Bc", "Sk", "Dg" , "Other", "Failed")
+collected <- c( 61, 213, 4, 2, 5, 10, 19)
+genotyped <- c(14, 58, 0, 0, 0, 0, 0)
+samp.df <- data.frame(ID, collected, genotyped)
+
+samp.df.m <- melt(samp.df, id.var="ID")
+
+samp.cols <- c("darkorchid4", "firebrick")
+
+ggplot(samp.df.m,
+       aes(x= ID, y= value,
+           fill = variable,
+           ymax= 220, 
+           ymin= 0)) +
+  geom_bar(stat = "identity", position=position_dodge()) +
+  scale_fill_manual(values=samp.cols) +
+  ggtitle("Collected and Genotyped") +
+  theme(plot.title = element_text(ggplot(color="black", size=16, face="bold", hjust = 0.5))) +
+  ylab("Samples") + #added newline char to increase space between label
+  theme(axis.title.y = element_text(color="black", size=10, face="bold", vjust=0)) +
+  xlab("Species") +
+  theme(axis.title.x = element_text(color="black", size=10, face="bold")) +
+  scale_x_discrete(limits= samp.df$ID) +
+  theme(axis.text.x = element_text(color="black", size=10, face = "bold")) +
+  theme(legend.position="none")
+
+```
+
+
+```{r, bonfer.gf}
+
+#input df
+pE <- read.csv("Projects/NCST/data/GFox/GFox Pvals E.csv", header = TRUE)
+
+pW <- read.csv("Projects/NCST/data/GFox/GFox Pvals W.csv", header = TRUE)
+
+pK1 <- read.csv("Projects/NCST/data/GFox/GFox Pvals K1.csv", header = TRUE)
+
+pK2 <- read.csv("Projects/NCST/data/GFox/GFox Pvals K2.csv", header = TRUE)
+
+### Order data by p-value
+pE <- pE[order(pE$Prob),]
+
+pW <- pW[order(pW$Prob),]
+
+pK1 <- pK1[order(pK1$Prob),]
+
+pK2 <- pK2[order(pK2$Prob),]
+
+#apply Bonferroni correction
+pE$Bonferroni <- p.adjust(pE$Prob, method = "bonferroni")
+
+pW$Bonferroni <- p.adjust(pW$Prob, method = "bonferroni")
+
+pK1$Bonferroni <- p.adjust(pK1$Prob, method = "bonferroni")
+
+pK2$Bonferroni <- p.adjust(pK2$Prob, method = "bonferroni")
+
+```
+
+```{r, bonferroni.cy}
+
+pK1 <- read.csv("Projects/NCST/data/Coy/Coy Pvals K1.csv", header = TRUE)
+
+pK2 <- read.csv("Projects/NCST/data/Coy/Coy Pvals K2.csv", header = TRUE)
+
+### Order data by p-value
+pE <- pE[order(pE$Prob),]
+
+pW <- pW[order(pW$Prob),]
+
+pK1 <- pK1[order(pK1$Prob),]
+
+pK2 <- pK2[order(pK2$Prob),]
+
+#apply Bonferroni correction
+pE$Bonferroni <- p.adjust(pE$Prob, method = "bonferroni")
+
+pW$Bonferroni <- p.adjust(pW$Prob, method = "bonferroni")
+
+pK1$Bonferroni <- p.adjust(pK1$Prob, method = "bonferroni")
+
+pK2$Bonferroni <- p.adjust(pK2$Prob, method = "bonferroni")
+
+```
+
+
+
+```{r, ho_he}
+
+#read in DF of het scores
+pops <- c("Pop_hwy", "E", "W", "Pop_str", "K1", "K2", "Pop_hwy", "E", "W", "Pop_str", "K1", "K2")
+count <- c(0.600, 0.604, 0.597, 0.561, 0.564, 0.559, 0.679, 0.710, 0.648, 0.582, 0.587, 0.577)
+error <- c(0.043, 0.058, 0.066, 0.056, 0.068, 0.092, 0.028, 0.034, 0.045, 0.045, 0.058, 0.072)
+zyg <- c("Ho", "Ho", "Ho", "Ho", "Ho", "Ho", "He", "He", "He", "He", "He", "He")
+    
+het_Cx <- data.frame(pops, count, error, zyg)       # df is a data frame
+
+#--- OR create CSV ---
+ht_noCX <- read.csv("Projects/NCST/data/GFox/HetwoCX.csv")
+
+ht_CX <- read.csv("Projects/NCST/data/GFox/HetwCX.csv")
+
+ht_coy <- read.csv("Projects/NCST/data/Coy/HetCoy.csv")
+
+
+ggplot(ht_coy, aes(x=Pop, y=Value, fill=Zygosity)) + 
+  geom_bar(position = position_dodge(), stat = "identity",colour="black", width=0.7) +
+  geom_errorbar(aes(ymin=Value-SE, ymax=Value+SE), width=0.6, position = position_dodge(.9)) +
+  #scale_x_discrete(limits=c("Total_hwy", "E", "W", "Total_str", "K1", "K2")) +
+  coord_cartesian(ylim = c(0,0.8)) +
+  scale_fill_manual(values=c("darkseagreen2", "darkslategrey"))
+```
+
+```{r, related}
+#readin csv
+gf.rel <- read.csv("Projects/NCST/data/GFox/Relatedness.csv")
+
+ggplot(gf.rel, aes(x=Pair, y=Relatedness, fill=CXX402)) +
+  geom_point(data=subset(gf.rel, CXX402=="Yes"), aes(x=Pair, y=Relatedness, group=NULL)) +
+  coord_cartesian(ylim = c(0,1))
+
+coy.rel <- read.csv("Projects/NCST/data/Coy/Relatedness.csv")
+
+```
+
+Add in map color palattes
+```{r, map_cols}
+comb.cols <- c("dimgrey", "darkorange3", "tan3", "navajowhite2")
+
+```
+
+Base info for Gray Fox and Coyotes
+```{r, base_info}
+samp <- read.csv("Projects/NCST/data/Sample_spatial.csv")
+
+# Check how many NA's in spatial data
+samp %>% filter(is.na(lat)) %>% tally # no NAs!
+
+# make the data "spatial":
+samp.SP <- SpatialPointsDataFrame(coords = samp[, c("lat", "long")], data = samp) #will not work with NAs
+
+# check the CRS
+raster::crs(samp.SP) # should be NA
+lats <-CRS("+init=epsg:3717") # set the default for lat/longs  4326 = WGS 84 CRS projection EPSG:3717
+proj4string(samp.SP) <- lats # assign the CRS we want to use
+raster::crs(samp.SP) # should be the full lats obj now
+
+# Transform to UTMs (or whatever)
+utms <- CRS("+init=epsg:32610") # zone 10 UTMs
+samp_utms.SP<-spTransform(x = samp.SP, CRSobj = utms)
+raster::crs(samp_utms.SP) # should be the full UTMs now
+
+# add UTMs as cols to dataframe?
+samp.SP@data$utm_x <- samp_utms.SP@coords[,2]
+samp.SP@data$utm_y <- samp_utms.SP@coords[,1]
+
+
+#read in road shapefile
+SR_49 <- readOGR(dsn = ("Projects/NCST/data/GIS/T_PrSec_Roads"), layer = "tl_2016_06_prisecroads")
+
+```
+
+
+```{r, comb_map}
+#Map components
+ca_state <- map_data("state",region=c('CA'))
+
+ca_count <- map_data("county", region=c('CA'))
+# <- subset(counties, region == "california")
+
+ca_base <- ggplot(data = ca_state, mapping = aes(x = long, y = lat, group= group)) + 
+                  coord_cartesian(xlim = c(-121.25,-120.7), ylim = c(38.88,39.33)) +
+                  geom_polygon(col = "black", fill = NA) 
+
+count_base <- ggplot(data = ca_count, mapping = aes(x = long, y = lat, group= group)) + 
+                  coord_cartesian(xlim = c(-121.25,-120.7), ylim = c(38.88,39.33)) +
+                  geom_polygon(color = "gray50", lty = 3, lwd = 0.9, fill = NA)
+
+#convert SpatialPointsDataFrame back to a dataframe and subset data
+samp.df <- as.data.frame(samp.SP)
+gno.geno <- subset(samp.df, genotype=="Gray Fox, No Genotype")
+gk1.geno <- subset(samp.df, genotype=="Gray Fox, K1")
+gk2.geno <- subset(samp.df, genotype=="Gray Fox, K2")
+cno.geno <- subset(samp.df, genotype=="Coyote, No Genotype")
+ck1.geno <- subset(samp.df, genotype=="Coyote, K1")
+ck2.geno <- subset(samp.df, genotype=="Coyote, K2")
+leg.labs <- (c("Gray Fox, No Genotype", "Coyote, No Genotype", "Gray Fox, K1", "Gray Fox, K2","Coyote, K1","Coyote, K2", "State Route 49"))
+leg.col <- (c("palegreen3","deepskyblue","dimgrey", "darkorange3","tan3", "navajowhite2", "red3"))
+
+#convert SR_49 to dataframe also
+sr49.df <- as.data.frame(SR_49) 
+sr49.df <- filter(sr49.df, FULLNAME =="State Rte 49")
+write.csv(sr49.df, "Projects/NCST/data_output/SR_49path.csv")
+#sr49.name <- subset(sr49.df, FULLNAME=="")
+```
+
+
+```{r, map.area}
+
+#Build map#
+dev.new()
+count_base + 
+  geom_path(data = PN_hwy, color = "gray46", lty=1, lwd=1, show.legend=FALSE) +
+  geom_path(data = PN_hwy[PN_hwy@data$FULLNAME=="State Rte 49",], lty= 1, lwd=1.5, color="red") + 
+  geom_jitter(data = gno.geno, aes(long, lat, group=genotype, color="palegreen3"),            
+             position=position_jitter(width = 0.0015, height = 0.0015), 
+             pch = 24, bg = "palegreen3", cex=1.8, show.legend=FALSE) +                  
+  geom_jitter(data = cno.geno, aes(long, lat, group=genotype, color=factor(genotype)),        
+             position=position_jitter(width = 0.0015, height = 0.0015),  
+             pch = 25, bg = "deepskyblue", cex=1.8, show.legend=FALSE) +   
+  geom_jitter(data = gk2.geno, aes(x=long, y=lat, group=genotype, color=factor(genotype)), 
+             position=position_jitter(width = 0.0015, height = 0.0015), 
+             pch = 21, bg = "dimgrey", cex=3, show.legend=FALSE) +                  
+  geom_jitter(data = gk1.geno, aes(x=long, y=lat, group=genotype, color=factor(genotype)), 
+             position=position_jitter(width = 0.0051, height = 0.0015),
+             pch = 21, bg = "darkorange3", cex=3, show.legend=FALSE) +  
+  geom_jitter(data = ck2.geno, aes(x=long, y=lat, group=genotype, color=factor(genotype)), 
+             position=position_jitter(width = 0.0015, height = 0.0015), 
+             pch = 21, bg = "khaki3", cex=3, show.legend=FALSE) +
+  geom_jitter(data = ck1.geno, aes(x=long, y=lat, group=genotype, color=factor(genotype)), 
+             position=position_jitter(width = 0.0051, height = 0.0015),
+             pch = 21, bg = "orchid", cex=3, show.legend=FALSE) +
+  labs(x=NULL, y=NULL) +
+  theme(panel.grid = element_blank(), panel.background = element_blank()) +
+  theme(axis.line = element_line(colour = "black")) +
+  ggtitle("Samples Collected and Genotyped") +
+  theme(plot.title = element_text(color="black", size=15, face="bold")) 
+  #theme(legend.position =c(0.8,0.2))
+  #scale_fill_identity(name = '', guide = 'legend', labels = c('Level')) +
+#  scale_color_manual(values = c("palegreen3", "deepskyblue", "dimgrey", "darkorange3", "khaki3", "orchid", "red"), 
+#                     guide = guide_legend(override.aes = list(
+#                       linetype=c(0,0,0,0,0,0,1),
+#                       shape = c(24,21,21,25,21,21,0))))
+  
+
+df <- data.frame(x=1:50, y=rnorm(50, 10, 2), int=rbinom(50,1,0.3))
+#labels = c("Gray Fox, No Genotype", "Coyote, No Genotype", "Gray Fox, K1", "Gray Fox, K2", "Coyote, K1", "Coyote, K2","State Route 49"),
+
+```
+
+```{r, gfcy_base}
+rp.df <- read.csv("Projects/NCST/data/Rel_pairs.csv")
+
+#read in road shapefile
+SR_49 <- readOGR(dsn = ("Projects/NCST/data/GIS/T_PrSec_Roads"), layer = "tl_2016_06_prisecroads")
+
+```
+
+
+```{r, map_rel}
+
+#create an object for the CA county etc to call in ggplot using the map_data function in ggplot
+ca_state <- map_data("state",region=c('CA'))
+
+ca_count <- map_data("county", region=c('CA'))
+# <- subset(counties, region == "california")
+
+ca_base <- ggplot(data = ca_state, mapping = aes(x = long, y = lat, group= group)) + 
+                  coord_cartesian(xlim = c(-121.25,-120.7), ylim = c(38.88,39.35)) +
+                  geom_polygon(col = "black", fill = NA) 
+
+
+count_base <- ggplot(data = ca_count, mapping = aes(x = long, y = lat, group= group)) + 
+                  coord_cartesian(xlim = c(-121.25,-120.7), ylim = c(38.88,39.35)) +
+                  geom_polygon(color = "gray50", lty = 3, lwd = 0.9, fill = NA)
+
+
+#just for testing to see how realted individuals cluster
+dev.new()
+count_base +
+  geom_path(data = SR_49, color = "gray46", lty=1, lwd=1) +
+  geom_jitter(data=rp.df, aes(long,lat,group=NULL, color= Rel_pair,fill=Rel_pair, shape=Rel_pair, size=Rel_pair), position=position_jitter(width = 0.0025, height = 0.0025)) +
+  scale_colour_manual('', values=rep("black", 8)) + 
+  scale_fill_manual(values=c("aquamarine2", "deepskyblue3", "darkorchid2", "darkolivegreen4",
+                             "lightgoldenrod1", "black", "deeppink1", "chocolate1")) + 
+  scale_shape_manual(values=c(24,21,21,21,21,21,21,21)) +
+  scale_size_manual(values=c(1.8,3,3,3,3,3,3,3)) +
+  labs(x=NULL, y=NULL) +
+  theme(panel.grid = element_blank(), panel.background = element_blank()) +
+  theme(axis.line = element_line(colour = "black")) +
+  ggtitle("Related Pairs") +
+  theme(plot.title = element_text(color="black", size=15, face="bold")) +  
+  theme(legend.position = c(0.9, 0.25)) +
+  theme(legend.background = element_rect(fill="white")) +
+  guides(shape= FALSE, size=FALSE, color=FALSE) +
+  guides(fill=guide_legend(title="Related Pairs", 
+                           override.aes = list(values=c("aquamarine2", "deepskyblue3", "darkorchid2",
+                                                        "darkolivegreen4", "lightgoldenrod1", "black",
+                                                        "deeppink1", "chocolate1"), 
+                                               breaks=c("Coyote", rep("Gray Fox", 7)),
+                                               shape=c(24,21,21,21,21,21,21,21),
+                                               size=c(1.8,3,3,3,3,3,3,3))))
+
+guide_legend(title = waiver(), title.position = NULL, title.theme = NULL, title.hjust = NULL, title.vjust = NULL, label = TRUE, label.position = NULL, label.theme = NULL, label.hjust = NULL, label.vjust = NULL, keywidth = NULL, keyheight = NULL, direction = NULL, default.unit = "line", override.aes = list(), nrow = NULL, ncol = NULL, byrow = FALSE, reverse = FALSE, order = 0, ...)
+
+
+scale_fill_identity(name = '', guide = 'legend'
+                      , labels = c('Level')) +
+  scale_colour_manual(name='', values=c('Interpolated'='red', 'Linear'='orange'
+                                        , 'Smooth'='#1E90FF'), guide='legend') +
+  guides(fill = guide_legend(override.aes = list(linetype = 0, shape=''))
+         , colour = guide_legend(override.aes = list(linetype=c(0,1,1)
+                                                     , shape=c(16,NA,NA))))
+
+ 
+
+plot(gfox.SP[gfox.SP@data$Sample=="F16-272b",], add = TRUE, pch = 24, bg = "red")
+plot(gfox.SP[gfox.SP@data$Sample=="F16-277b",], add = TRUE, pch = 24, bg = "red")
+
+plot(gfox.SP[gfox.SP@data$Sample=="F16-106",], add = TRUE, pch = 24, bg = "blue")
+plot(gfox.SP[gfox.SP@data$Sample=="F16-048",], add = TRUE, pch = 24, bg = "blue")
+
+plot(gfox.SP[gfox.SP@data$Sample=="F16-138",], add = TRUE, pch = 24, bg = "green")
+plot(gfox.SP[gfox.SP@data$Sample=="F16-086",], add = TRUE, pch = 24, bg = "green")
+
+plot(gfox.SP[gfox.SP@data$Sample=="F16-119b",], add = TRUE, pch = 24, bg = "orange")
+plot(gfox.SP[gfox.SP@data$Sample=="F16-126",], add = TRUE, pch = 24, bg = "orange")
+
+plot(gfox.SP[gfox.SP@data$Sample=="F16-222",], add = TRUE, pch = 24, bg = "purple")
+plot(gfox.SP[gfox.SP@data$Sample=="F16-034",], add = TRUE, pch = 24, bg = "purple")
+
+plot(coy.SP[coy.SP@data$Sample=="F16-097",], add = TRUE, pch = 24, bg = "black")
+plot(coy.SP[coy.SP@data$Sample=="F16-062",], add = TRUE, pch = 24, bg = "black")
+
+plot(coy.SP[coy.SP@data$Sample=="F16-226",], add = TRUE, pch = 24, bg = "cyan")
+plot(coy.SP[coy.SP@data$Sample=="F16-254b",], add = TRUE, pch = 24, bg = "cyan")
+
+plot(gfox.SP[gfox.SP@data$Sample=="F16-180",], add = TRUE, pch = 21, bg = "deeppink1")
+plot(gfox.SP[gfox.SP@data$Sample=="F16-146",], add = TRUE, pch = 21, bg = "deeppink1")
+
+
+#add marker points for those that yeilded a viable genotype for K1 and K2
+plot(gfox.SP[gfox.SP@data$genotype=="K2",], add=TRUE,pch=21, bg= "dimgrey", cex = 1.4) 
+plot(gfox.SP[gfox.SP@data$genotype=="K1",], add=TRUE,pch=21, bg="darkorange3", cex = 1.4) 
+
+
+```
+
+
+
+```{r, urban_areas}
+urb <- readOGR(dsn = ("Projects/NCST/data/GIS/Tigerline US Urban Areas"), layer = "tl_2016_us_uac10")
+
+#turn into a spatial points dataframe
+urb.df <- as.data.frame(urb)
+
+#convert to numeric for Lat and Long
+urb.df[, "INTPTLON10"] <- as.numeric(as.character(urb.df[, "INTPTLON10"]))
+urb.df[, "INTPTLAT10"] <- as.numeric(as.character(urb.df[, "INTPTLAT10"]))
+
+#filter out cities outside of Study Area (Placer and Nevada Co)
+PN_urb.df <- filter(urb.df, INTPTLON10 <= -120.8, INTPTLON10 > -121.5,
+                     INTPTLAT10 <=39.4, INTPTLAT10 >=38.7)
+  
+#subset urb SP POlygon to only citeies within the SA
+PN_urb <- subset(urb, urb$NAME10 %in% c('Lake Wildwood, CA', 'Lake of the Pines, CA', 'Colfax, CA', 'Grass Valley, CA', 'Auburn--North Auburn, CA', 'Wheatland, CA'))
+
+#add 'Urban Areas' column to dataframe
+PN_urb$Urban <- c("Urban Cluster", "Urban Cluster", "Urban Cluster", "Urban Cluster", "Urban Cluster", "Urban Cluster")
+
+```
+
+
+Traffic data image
+```{r, aadt}
+#read in Hwy shapefile
+CA.hwy <- readOGR(dsn = ("Projects/NCST/data/GIS/T_PrSec_Roads"), layer = "tl_2016_06_prisecroads")
+
+#check projection
+crs(CA.hwy)
+
+#turn into a spatial points dataframe
+CA.hwy.sp.df <- as.data.frame(CA.hwy)
+PN_hwy.df <- filter(CA.hwy.sp.df, CA.hwy.sp.df$FULLNAME %in% c("State Rte 49", "State Rte 20", "I- 80", "State Rte 174"))
+
+
+#subset out hwys outside of Study Area (Placer and Nevada Co)
+PN_hwy <- subset(CA.hwy, CA.hwy$FULLNAME %in% c("State Rte 49", "State Rte 20", "I- 80", "State Rte 174"))
+plot(PN_hwy)  
+
+#read in shapefile from Clatran AADT
+aadt15 <- readOGR(dsn="Projects/NCST/data/GIS/AADT2015b", layer = "AADT2015b")
+
+head(aadt15)
+
+
+PN_aadt.df <- as.data.frame(aadt15)
+PN_aadt <- subset(aadt15, aadt15$Route=='49' &aadt15$County %in% c("PLA", "NEV"))
+
+#change colnames
+names(PN_aadt.df)[names(PN_aadt.df) == 'coords.x1'] <- 'long'
+names(PN_aadt.df)[names(PN_aadt.df) == 'coords.x2'] <- 'lat'
+
+#rename Long and Lat
+names(PN_aadt.df)[names(PN_aadt.df) == 'coords.x1'] <- 'long'
+names(PN_aadt.df)[names(PN_aadt.df) == 'coords.x2'] <- 'lat'
+
+#subset aadt points, read in shp, need to sort out BA points
+PN_aadt.df <- filter(PN_aadt.df, Route=='49', County %in% c("PLA", "NEV")) 
+
+PN.traf.bin <- read.csv("Projects/NCST/data/GIS/PN.aadt.trafbin.csv")
+
+PN.tb.sp <- SpatialPointsDataFrame(coords = PN.traf.bin[, c("long", "lat")], data = PN.traf.bin)
+
+#culverts data frame
+PN_culv <- read.csv("Projects/NCST/data/GIS/Culverts.csv")
+
+PN_culv.SP <- SpatialPointsDataFrame(coords = PN_culv[, c("long", "lat")], data = PN_culv) #will not work with NAs
+
+#turn into a spatial points dataframe
+PN_culv.df <- as.data.frame(PN_culv)
+
+
+#traffic heat map test plot
+# First create a df for the colors
+col.df <- data.frame(map=c("khaki", "goldenrod1", "orange", "darkorange1", "orangered3", "red3", "firebrick", "darkred"), rank=c(1,2,3,4,5,6,7,8), value=c(1,1,1,1,1,1,1,1))
+
+ggplot(col.df, aes(x = map, y = value, fill=rank) + 
+      geom_bar()) #+
+      scale_fill_manual(values=c("khaki", "goldenrod1", "orange", "darkorange1", "orangered3", "red3", "firebrick", "darkred"))
+
+#ggplot(df, aes(x=cond, y=yval, fill=cond)) + geom_bar(stat="identity")
+```
+
+```{r, scale_bar}
+#Currently giving up and using Google earth and paint >.>
+
+# Function to add a scalebar to a base-graphics plot
+
+myScalebar = function(units_label, yadj=1.5) {
+
+  # Get plot coordinates
+  pc = par("usr") 
+
+  # Position scale line between last two major x-axis tick marks
+  # and 1/10th of the total y-range above the lower y-axis coordinate
+  lines(c(floor(pc[1]-1),floor(pc[21])),     
+        rep(pc[3] + 0.1*(pc[4] - pc[3]), 2))
+
+  # Place the units label at the midpoint of and just below the scale line
+  text(x=mean(c(floor(pc[2]-1), floor(pc[2]))), 
+       y=pc[3] + 0.1*(pc[4] - pc[3]),
+       label=units_label, adj=c(0.5, yadj))
+}
+
+# Now redo your plot
+# Start with blank plot
+plot(1,1, type="n", xlim=c(0,5), ylim=c(0,5), 
+     yaxt="n", xaxt="n", frame.plot=F, ann=F)
+
+# Add a simple function
+x=c(1:5)
+y=x*x
+lines(x=x, y=y)
+
+# Add scalebar
+myScalebar("1 km")
+
+```
+
+
+
+```{r,plot_SA49}
+ca_count <- map_data("county", region=c('CA'))
+
+count_base <- ggplot(data = ca_count, mapping = aes(x = long, y = lat, group= group)) + 
+                  coord_cartesian(xlim = c(-121.25,-120.7), ylim = c(38.88,39.35)) +
+                  geom_polygon(color = "gray50", lty = 3, lwd = 0.9, fill = NA) +
+                  
+
+SA_map <- (count_base)
+
+dev.new()
+
+#not working, skipping to plot instead for times sake, try adjusting later
+SA_map + geom_polygon(data=PN_urb, color = "gray24", fill='gray77') +
+         geom_path(data=PN_hwy, color="gray19") +
+         geom_path(data=PN_hwy[PN_hwy@data$FULLNAME=="State Rte 49",], lty=1, lwd=2, 
+                   color="darkblue") +
+         geom_point(data=PN_aadt.df, show.legend=FALSE, shape=22, aes(long, lat, group=NULL, fill=PN_aadt.df$Ahead_AADT) +
+         scale_fill_gradient(low="khaki1", high="red4"))              
+         
+#making map of Study area using plot
+dev.new()
+
+par(mai=c(0.1,0.1,0.1,0.1))
+par(pin=c(6,6))
+map("state",region=c('CA'), xlim = c(-121.25,-120.65), ylim=c(38.88,39.35))
+
+plot(PN_urb,add=TRUE, col="gray88")
+
+map.axes()
+map("county",region=c('CA'),boundary=FALSE,lty=3, add=TRUE)
+  
+plot(PN_hwy, add = TRUE, lty=1, lwd=1, col= "gray24")
+plot(PN_hwy[PN_hwy@data$FULLNAME=="State Rte 49",], add=TRUE, lty= 1, lwd=8, col="black")
+plot(PN_hwy[PN_hwy@data$FULLNAME=="State Rte 49",], add=TRUE, lty= 1, lwd=5, col="seagreen")
+
+
+#NOTE Broke code, now won't plot taffice postmiles
+plot(PN.tb.sp[PN.tb.sp@data$Traffic_bin=="< 10,000",], add=TRUE, pch = 22, bg = "khaki1")
+plot(PN.tb.sp[PN.tb.sp@data$Traffic_bin=="10,000-20,000",], add=TRUE, pch = 22, bg = "goldenrod1")
+plot(PN.tb.sp[PN.tb.sp@data$Traffic_bin=="20,000-30,000",], add=TRUE, pch = 22, bg = "orange")
+plot(PN.tb.sp[PN.tb.sp@data$Traffic_bin=="> 30,000",], add=TRUE, pch = 22, bg = "darkorange1")
+
+plot(PN_culv.SP[PN_culv.SP@data$Type=='Culvert',], add=TRUE, pch=21,cex=1.2, bg="magenta")
+plot(PN_culv.SP[PN_culv.SP@data$Type=='Bridge over Creek',], add=TRUE, pch=22, cex=1, bg="turquoise2")
+
+#If adding data points skip to next section below and use that legend
+
+legend("bottomright", legend = c("< 10,000", "10,000-20,000", "20,000-30,000", "30,000-40,000", "Culvert", "Bridge over Creek", "Urban Area"), bg="gray93", col=c("khaki1", "goldenrod1", "orange", "darkorange1", "magenta", "turquoise2", "gray68"), pch=c(NA,NA,NA,NA,21,22,22), 
+       pt.cex=c(1,1,1,1,1,2,2), lty=c(1,1,1,1,NA,NA,NA), lwd=c(5,5,5,5,NA,NA,NA),  cex= 0.75, title = "Annual Average Daily Traffic")
+
+plot(gfox.SP[gfox.SP@data$genotype=="K2",], add=TRUE, pch=21, bg=alpha("dimgrey", 0.5))
+plot(gfox.SP[gfox.SP@data$genotype=="K1",], add=TRUE, pch=21, bg="darkorange3")
+
+plot(coy.SP[coy.SP@data$genotype=="K1",], add=TRUE, pch=24, bg="lightseagreen", cex=0.8)
+plot(coy.SP[coy.SP@data$genotype=="K2",], add=TRUE, pch=24, bg="tan1", cex=0.8)
+
+legend("bottomright", legend = c("< 10,000", "10,000-20,000", "20,000-30,000", "30,000-40,000", "Culvert", "Bridge over Creek", "Urban Area", "Gray fox", "Coyote"), bg="gray93", col=c("khaki1", "goldenrod1", "orange", "darkorange1", "magenta", "turquoise2", "gray68", "dimgrey", "lightseagreen"), pch=c(NA,NA,NA,NA,21,22,22, 21, 24), 
+       pt.cex=c(1,1,1,1,1,2,2,1,1), lty=c(1,1,1,1,NA,NA,NA,NA,NA), lwd=c(5,5,5,5,NA,NA,NA,NA,NA),  cex= 0.75, title = "Annual Average Daily Traffic")
+
+leg.labs <- (c("Gray Fox, No Genotype", "Coyote, No Genotype", "Gray Fox, K1", "Gray Fox, K2","Coyote, K1","Coyote, K2", "State Route 49"))
+leg.col <- (c("palegreen3","deepskyblue","dimgrey", "darkorange3", "navajowhite4", "khaki2", "red3"))
+
+```
+
+```{r, SA_map.BA}
+#need to add in urb shapefile from above, convert to sp point dataframe, convert Lat and Long
+urb.sp.df <- as.data.frame(polygons(urb))
+
+#filter out cities outside of Study Area (Contra Costa and Nevada Co)
+BA_urb.df <- filter(urb.df, INTPTLON10 <= -121.68, INTPTLON10 > -122.29,
+                     INTPTLAT10 <=38.1, INTPTLAT10 >=37.55)
+  
+#subset urb SP POlygon to only citeies within the SA
+BA_urb <- subset(urb, urb$NAME10 %in% c('Concord, CA', 'Livermore, CA'))
+
+#ROADS!!!! (From above section, run shapefile, convert to df)
+BA_hwy.df <- filter(CA.hwy.sp.df, CA.hwy.sp.df$FULLNAME %in% c("I- 680", "I- 580"))
+
+#subset to hwys in BA
+BA_hwy <- subset(CA.hwy, CA.hwy$FULLNAME %in% c("I- 680", "I- 580"))
+
+#read in shapefile from Clatran AADT
+aadt15 <- readOGR(dsn="Projects/NCST/data/GIS/AADT2015b", layer = "AADT2015b")
+BA_aadt.df <- as.data.frame(aadt15)
+
+#change colnames
+names(BA_aadt.df)[names(BA_aadt.df) == 'coords.x1'] <- 'long'
+names(BA_aadt.df)[names(BA_aadt.df) == 'coords.x2'] <- 'lat'
+
+#subset aadt points, read in shp, need to sort out BA points
+BA_aadt.df <- filter(BA_aadt.df, Route %in% c('680', '580'), County %in% c("CC", "ALA")) 
+
+BA_aadt.df.2 <- filter(BA_aadt.df, long <= -121.6, long >= -122.3, lat <=38.1, lat >=37.55)
+
+#need to constrain to the coordinates within SA
+BA_aadt <- subset(aadt15, aadt15$Route %in% c('680', '580') & aadt15$County %in% c("ALA", "CC")) 
+
+#culverts data frame
+BA_culv <- read.csv("Projects/NCST/data/GIS/BA_Culverts.csv")
+
+BA_culv.SP <- SpatialPointsDataFrame(coords = BA_culv[, c("long", "lat")], data = BA_culv) #will not work with NAs
+
+#turn into a spatial points dataframe
+BA_culv.df <- as.data.frame(BA_culv)
+
+dev.new() 
+
+par(mai=c(0.1,0.1,0.1,0.1))
+par(pin=c(6,6))
+map("state",region=c('CA'), xlim = c(-122.2,-121.7), ylim=c(37.55,38.0))
+
+plot(BA_urb,add=TRUE, col="gray88")
+
+map.axes()
+map("county",region=c('CA'),boundary=FALSE,lty=3, add=TRUE)
+
+plot(BA_hwy, add = TRUE, lty=1, lwd=1, col= "gray24")
+plot(BA_hwy[BA_hwy@data$FULLNAME=="I- 680",], add=TRUE, lty= 1, lwd=8, col="black")
+plot(BA_hwy[BA_hwy@data$FULLNAME=="I- 580",], add=TRUE, lty= 1, lwd=8, col="black")
+plot(BA_hwy[BA_hwy@data$FULLNAME=="I- 680",], add=TRUE, lty= 1, lwd=5, col="seagreen")
+plot(BA_hwy[BA_hwy@data$FULLNAME=="I- 580",], add=TRUE, lty= 1, lwd=5, col="seagreen")
+
+# add in postmiles
+plot(BA_aadt[BA_aadt@data$Postmile %in% c("13.93", "R20.057", "R28.745", "20.726", "9.683"),], add=TRUE, pch=22, bg="red3")
+plot(BA_aadt[BA_aadt@data$Postmile %in% c("R11.042", "19.3", "R18.707", "21.191"),], add=TRUE, pch=22, bg="darkred")
+plot(BA_aadt[BA_aadt@data$Postmile %in% c("R17.702", "14.383", "19.859", "14.974"),], add=TRUE, pch=22, bg="brown4")
+
+#add in culverts
+plot(BA_culv.SP[BA_culv.SP@data$Type=='Culvert',], add=TRUE, pch=21,cex=1.2, bg="magenta")
+plot(BA_culv.SP[BA_culv.SP@data$Type=='Bridge over Creek',], add=TRUE, pch=22, cex=1, bg="turquoise2")
+
+#If plotting samples, skip this legend portion
+legend("bottomleft", legend = c("< 100,000", "100,000-150,000", "150,000-200,000", ">200,000", "Culvert", "Bridge over Creek", "Urban Area"), bg="gray93", col=c("orangered3", "red3", "darkred", "brown4", "magenta", "turquoise2", "gray68"), pch=c(NA,NA,NA,NA,21,22,22),  pt.cex=c(1,1,1,1,1,2,2), lty=c(1,1,1,1,NA,NA,NA), lwd=c(5,5,5,5,NA,NA,NA),  cex= 0.75, title = "Annual Average Daily Traffic")
+
+#add in samples
+plot(coy.SP[coy.SP@data$genotype=="K1",], add=TRUE, pch=23, bg="lightgoldenrod3", cex=1)
+plot(coy.SP[coy.SP@data$genotype=="K2",], add=TRUE, pch=23, bg="chartreuse2", cex=0.8)
+
+legend("bottomleft", legend = c("< 100,000", "100,000-150,000", "150,000-200,000", ">200,000", "Culvert", "Bridge over Creek", "Urban Area", "Coyote"), bg="gray93", col=c("orangered3", "red3", "darkred", "brown4", "magenta", "turquoise2", "gray68", "lightgoldenrod3"), pch=c(NA,NA,NA,NA,21,22,22,24),  pt.cex=c(1,1,1,1,1,2,2,1), lty=c(1,1,1,1,NA,NA,NA,NA), lwd=c(5,5,5,5,NA,NA,NA,NA),  cex= 0.75, title = "Annual Average Daily Traffic")
+
+```
+
+
+
+```{r, SA_map.Sac}
+#need to add in urb shapefile from above, convert to sp point dataframe, convert Lat and Long
+urb <- readOGR(dsn = ("Projects/NCST/data/GIS/Tigerline US Urban Areas"), layer = "tl_2016_us_uac10")
+urb.sp.df <- as.data.frame(polygons(urb))
+
+#filter out cities outside of Study Area (Contra Costa and Nevada Co)
+Sac_urb.df <- filter(urb.df, INTPTLON10 <= -120.9, INTPTLON10 > -121.6,
+                     INTPTLAT10 <=39.15, INTPTLAT10 >=38.45)
+  
+#subset urb SP POlygon to only citeies within the SA
+Sac_urb <- subset(urb, urb$NAME10 %in% c('Wheatland, CA', 'Rancho Murieta, CA', 'Auburn--North Auburn, CA', 'Sacramento, CA'))
+
+#ROADS!!!! (From above section, run shapefile, convert to df)
+
+Sac_hwy.df <- filter(CA.hwy.sp.df, CA.hwy.sp.df$FULLNAME %in% c("I- 80", "US Hwy 50"))
+
+#subset to hwys in Sac
+Sac_hwy <- subset(CA.hwy, CA.hwy$FULLNAME %in% c("I- 80", "US Hwy 50"))
+
+#read in shapefile from Caltran AADT
+aadt15 <- readOGR(dsn="Projects/NCST/data/GIS/AADT2015b", layer = "AADT2015b")
+Sac_aadt.df <- as.data.frame(aadt15)
+
+#change colnames
+names(Sac_aadt.df)[names(Sac_aadt.df) == 'coords.x1'] <- 'long'
+names(Sac_aadt.df)[names(Sac_aadt.df) == 'coords.x2'] <- 'lat'
+
+#subset aadt points, read in shp, need to sort out Sac points
+Sac_aadt.df <- filter(Sac_aadt.df, Route %in% c('80', '50'), County %in% c("YOL", "SAC", "PLA", "ED")) 
+
+Sac_aadt.df <- filter(Sac_aadt.df, long <= -120.9, long >= -121.6, lat <=39.0, lat >=38.5)
+
+#Convert to csv, remove Postmiles of no interest, Leave only AADT AHEAD & BACK, remove peak hour and month, Add column for traffic bins, convert back to Spatial Points Dataframe
+write.csv(Sac_aadt.df, "Projects/NCST/data/GIS/Sac.aadt.trafbin.csv", row.names = TRUE)
+
+Sac.traf.bin <- read.csv("Projects/NCST/data/GIS/Sac.aadt.trafbin.csv")
+
+# make the data "spatial":
+Sac.tb.sp <- SpatialPointsDataFrame(coords = Sac.traf.bin[, c("long", "lat")], data = Sac.traf.bin)
+
+#culverts data frame
+Sac_culv <- read.csv("Projects/NCST/data/GIS/Sac_Culverts.csv")
+
+Sac_culv.SP <- SpatialPointsDataFrame(coords = Sac_culv[, c("long", "lat")], data = Sac_culv) #will not work with NAs
+
+#turn into a spatial points dataframe
+Sac_culv.df <- as.data.frame(Sac_culv)
+
+dev.new() 
+
+par(mai=c(0.1,0.1,0.1,0.1))
+par(pin=c(6,6))
+map("state",region=c('CA'), xlim = c(-121.6,-120.9), ylim=c(38.5,39.0))
+
+plot(Sac_urb,add=TRUE, col="gray88")
+
+map("county",region=c('CA'),boundary=FALSE,lty=3, add=TRUE)
+map.axes()
+
+plot(Sac_hwy, add = TRUE, lty=1, lwd=1, col= "gray24") 
+plot(Sac_hwy[Sac_hwy@data$FULLNAME=="US Hwy 50",], add=TRUE, lty= 1, lwd=8, col="black")
+plot(Sac_hwy[Sac_hwy@data$FULLNAME=="I- 80",], add=TRUE, lty= 1, lwd=8, col="black")
+plot(Sac_hwy[Sac_hwy@data$FULLNAME=="US Hwy 50",], add=TRUE, lty= 1, lwd=5, col="seagreen")
+plot(Sac_hwy[Sac_hwy@data$FULLNAME=="I- 80",], add=TRUE, lty= 1, lwd=5, col="seagreen")
+
+# add in postmiles
+plot(Sac.tb.sp[Sac.tb.sp@data$Traffic_bin == "1",], add=TRUE, pch=22, bg="orangered3")
+plot(Sac.tb.sp[Sac.tb.sp@data$Traffic_bin == "2",], add=TRUE, pch=22, bg="red3")
+plot(Sac.tb.sp[Sac.tb.sp@data$Traffic_bin == "3",], add=TRUE, pch=22, bg="darkred")
+plot(Sac.tb.sp[Sac.tb.sp@data$Traffic_bin == "4",], add=TRUE, pch=22, bg="brown4")
+
+#add in culverts
+plot(Sac_culv.SP[Sac_culv.SP@data$Type=='Culvert',], add=TRUE, pch=21,cex=1.2, bg="magenta")
+plot(Sac_culv.SP[Sac_culv.SP@data$Type=='Bridge over Creek',], add=TRUE, pch=22, cex=1, bg="turquoise2")
+
+Sac.SA <- (legend("topleft", legend = c("< 100,000", "100,000-150,000", "150,000-200,000", ">200,000", "Culvert", "Bridge over Creek", "Urban Area"), bg="gray93", col=c("orangered3", "red3", "darkred", "brown4", "magenta", "turquoise2", "gray68"), pch=c(NA,NA,NA,NA,21,22,22),  pt.cex=c(1,1,1,1,1,2,2), lty=c(1,1,1,1,NA,NA,NA), lwd=c(5,5,5,5,NA,NA,NA),  cex= 0.75, title = "Annual Average Daily Traffic"))
+
+plot(coy.SP[coy.SP@data$genotype=="K1",], add=TRUE, pch=24, bg="dodgerblue2", cex=0.8)
+plot(coy.SP[coy.SP@data$genotype=="K2",], add=TRUE, pch=24, bg="darkolivegreen2", cex=0.8)
+
+legend("topleft", legend = c("< 100,000", "100,000-150,000", "150,000-200,000", ">200,000", "Culvert", "Bridge over Creek", "Urban Area", "Coyote"), bg="gray93", col=c("orangered3", "red3", "darkred", "brown4", "magenta", "turquoise2", "gray68", "darkolivegreen2"), pch=c(NA,NA,NA,NA,21,22,22,24),  pt.cex=c(1,1,1,1,1,2,2,1), lty=c(1,1,1,1,NA,NA,NA,NA), lwd=c(5,5,5,5,NA,NA,NA,NA),  cex= 0.75, title = "Annual Average Daily Traffic")
+
+```
+
+```{r,maps.2}
+###BAY AREA
+par(mai=c(0.1,0.1,0.1,0.1))
+par(pin=c(6,6))
+map("state",region=c('CA'), xlim = c(-122.2,-121.7), ylim=c(37.55,38.0))
+plot(BA_urb,add=TRUE, col="gray88")
+map.axes()
+map("county",region=c('CA'),boundary=FALSE,lty=3, add=TRUE)
+plot(coy.SP[coy.SP@data$genotype=="K1",], add=TRUE, pch=23, bg=alpha("olivedrab2", 0.6), cex=1.5)
+plot(coy.SP[coy.SP@data$genotype=="K2",], add=TRUE, pch=23, bg=alpha("orange1", 0.6), cex=1.5)
+legend("bottomleft", legend = c("< 100,000", "100,000-150,000", "150,000-200,000", ">200,000", "Culvert", "Bridge over Creek", "Urban Area", "Coyote"), bg="gray93", col=c("orangered3", "red3", "darkred", "brown4", "magenta", "turquoise2", "gray68", "darkolivegreen2"), pch=c(NA,NA,NA,NA,21,22,22,23),  pt.cex=c(1,1,1,1,1,2,2,1), lty=c(1,1,1,1,NA,NA,NA,NA), lwd=c(5,5,5,5,NA,NA,NA,NA),  cex= 0.75, title = "Annual Average Daily Traffic")
+
+###SAC AREA
+par(mai=c(0.1,0.1,0.1,0.1))
+par(pin=c(6,6))
+map("state",region=c('CA'), xlim = c(-121.6,-120.9), ylim=c(38.5,39.0))
+plot(Sac_urb,add=TRUE, col="gray88")
+map("county",region=c('CA'),boundary=FALSE,lty=3, add=TRUE)
+map.axes()
+plot(coy.SP[coy.SP@data$genotype=="K1",], add=TRUE, pch=23, bg=alpha("deepskyblue2", 0.6), cex=1.5)
+#plot(coy.SP[coy.SP@data$genotype=="K2",], add=TRUE, pch=23, bg=alpha("mediumorchid", 0.6), cex=1.5)
+legend("topleft", legend = c("< 100,000", "100,000-150,000", "150,000-200,000", ">200,000", "Culvert", "Bridge over Creek", "Urban Area", "Coyote"), bg="gray93", col=c("orangered3", "red3", "darkred", "brown4", "magenta", "turquoise2", "gray68", "deepskyblue2"), pch=c(NA,NA,NA,NA,21,22,22,23),  pt.cex=c(1,1,1,1,1,2,2,1), lty=c(1,1,1,1,NA,NA,NA,NA), lwd=c(5,5,5,5,NA,NA,NA,NA),  cex= 0.75, title = "Annual Average Daily Traffic")
+
+
+###PN AREA
+par(mai=c(0.1,0.1,0.1,0.1))
+par(pin=c(6,6))
+map("state",region=c('CA'), xlim = c(-121.25,-120.65), ylim=c(38.88,39.35))
+plot(PN_urb,add=TRUE, col="gray88")
+map.axes()
+map("county",region=c('CA'),boundary=FALSE,lty=3, add=TRUE)
+plot(gfox.SP[gfox.SP@data$genotype=="K2",], add=TRUE, pch=21, bg=alpha("dimgrey", 0.5), cex=1.5)
+plot(gfox.SP[gfox.SP@data$genotype=="K1",], add=TRUE, pch=21, bg=alpha("darkorange3", 0.5), cex=1.5)
+plot(coy.SP[coy.SP@data$genotype=="K1",], add=TRUE, pch=23, bg=alpha("gold", 0.5), cex=1.5)
+plot(coy.SP[coy.SP@data$genotype=="K2",], add=TRUE, pch=23, bg=alpha("seagreen1", 0.5), cex=1.5)
+
+legend("bottomright", legend = c("< 10,000", "10,000-20,000", "20,000-30,000", "30,000-40,000", "Culvert", "Bridge over Creek", "Urban Area", "Gray fox", "Coyote"), bg="gray93", col=c("khaki1", "goldenrod1", "orange", "darkorange1", "magenta", "turquoise2", "gray68", "dimgrey", "lightseagreen"), pch=c(NA,NA,NA,NA,21,22,22, 21, 23), 
+       pt.cex=c(1,1,1,1,1,2,2,1,1), lty=c(1,1,1,1,NA,NA,NA,NA,NA), lwd=c(5,5,5,5,NA,NA,NA,NA,NA),  cex= 0.75, title = "Annual Average Daily Traffic")
+```
+
+```{r,canid_map}
+GF <- readOGR(dsn = ("Projects/NCST/data/GIS/Canid map"), layer = "Export_Output_2")
+
+CY <- readOGR(dsn = ("Projects/NCST/data/GIS/Canid map"), layer = "Export_Output_3")
+
+RF <- readOGR(dsn = ("Projects/NCST/data/GIS/Canid map"), layer = "RedFox_2017")
+
+
+ggplot(ca_count,aes(x = long, y = lat, group= group)) +
+  geom_path(data = SR_49, color = "gray46", lty=1, lwd=1) 
+
+```

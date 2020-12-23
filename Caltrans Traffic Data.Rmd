@@ -1,0 +1,35 @@
+---
+title: "Caltrans Traffic"
+author: "Coen, Amanda"
+date: "February 13, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(root.dir = normalizePath("../"))
+library(dplyr)
+```
+
+
+Read in the full 2015 data set
+```{r, full_data}
+
+traffic_2015 <- read.csv("Projects/data/2015aadt.csv")
+
+str(traffic_2015)
+
+```
+
+Section this into highways of interest starting with 49 in the District 3 region
+```{r, SR49}
+
+SR49_2015 <- traffic_2015 %>% 
+             filter(Route == "049") %>%  # should filter the dataset to just State Road 49
+             filter(Dist == "03") %>%  # should filter down to just Caltrans District 3
+             filter(County == "NEV" | County == "PLA") # should filter down to Nevada and Placer counties
+
+#save to file
+write.csv(SR49_2015, file = "Projects/data_output/SR49_2015.csv", row.names = FALSE)
+
+```
+

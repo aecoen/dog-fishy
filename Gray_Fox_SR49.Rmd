@@ -1,0 +1,346 @@
+---
+title: "Gray_Fox_SR49"
+author: "Coen, Amanda"
+date: "March 18, 2017"
+output: 
+  html_document: 
+    fig_height: 10
+    fig_width: 10
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(root.dir = normalizePath("../"))
+knitr::opts_chunk$set(echo = FALSE)
+library(dplyr)
+library(readr)
+library(ggplot2)
+library(dynamicTreeCut)
+library(allelematch)
+library(reshape2)
+library(grid)
+library(rgdal)  # for vector work; sp package will load with rgdal
+library(raster) # for metadata/attributes- vectors or rasters
+library(rasterVis)
+library(leaflet) # interactive maps
+library(viridis) # color palettes
+```
+
+First, clean up the data from microsat results
+1) Sort by samples that are the most complete
+2) Replace all 0 values with -99
+3) Delete all incomplete samples, add these in as they are completed
+
+Read in the data as a dataframe
+```{r, gfox_data}
+
+data <- as.data.frame(read.table("Projects/NCST/data/GFox_Consensus_20170316.txt", header=T, sep="\t")) #needs to be saved as a text file
+
+#need to make sure the empty rows are not showing up as NAs, if so, delete all empty rows
+
+head(data)  #make sure the data was read in properly
+
+#Create a formatted object for analysis with other allematch tools
+GFoxData_2016 <- amDataset(data, missingCode = "-99", indexColumn = 1, metaDataColumn = NULL)
+
+```
+
+Once read in as amDataset, need to find the optimal allele mismatch value 
+
+`amUniqueProfile` Determines optimal parameter values for the identification of unique genotypes
+
+`guessOptimum`  If `TRUE` will guess the optimal value of the parameter being profiled by examining the profile for the first minimum associated with a drop in multiple matches as sensitivity to differences among samples decreases.
+
+`consensusMethod` The method (an integer) used to determine the consensus multilocus genotype from a cluster of multilocus genotypes. See amCluster for details.
+
+```{r, opt_params}
+
+amUniqueProfile(GFoxData_2016, guessOptim=T, consensusMethod=1)
+
+```
+
+Current data set shows optimal mismatch is 3
+
+```{r, GFox_output}
+
+GFox_2016_mismatch3 <- amPairwise(GFoxData_2016, alleleMismatch = 3)
+
+amCSV.amPairwise(GFox_2016_mismatch3,"data_output/GFoxAllelematch_2016_14loci_3miss.csv")
+
+```
+Results currently show:
+F16-048 and F16-049 are the same individual
+F16-063	and F16-115
+F16-081	and F16-135
+F16-086, F16-087, F16-138 and F16-139
+F16-105 and	F16-106
+F16-146, F16-148, and F16-151
+F16-152	F16-153
+F16-166	F16-167
+F16-212	F16-215b
+F16-227, F16-232, and F16-234
+F16-168	F16-165
+
+Use csv file in STRUCTURE, zip Results file and import in STRUCTURE Harvester to determine most likely K value
+
+Download Clumpp indfile, use in CLUMPP to generate INDQ files for use in Stacked Bar Plot 
+
+```{r, r_colorsets}
+GFoxK2_14Lcols <- c("slategray", "wheat3")
+
+```
+
+```{r, GFox_Runs}
+GFoxK2_14LM3 <- read.table("Projects/NCST/data/GFox14loc,3missK2.txt", header = TRUE)
+GFoxK2_14LM3_unsort <- read.table("Projects/NCST/data/GFox14loc,3missK2_unsorted.txt", header = TRUE)
+```
+
+```{r, melt}
+GFoxK2_14LM3.m <- melt(GFoxK2_14LM3, id.var="ID")
+GFoxK2_14LM3_unsort.m <- melt(GFoxK2_14LM3_unsort, id.var="ID")
+```
+
+```{r, plot}
+dev.new()
+ggplot(GFoxK2_14LM3.m, 
+       aes(x = ID,   #Just sets your x and y values
+           y = value, 
+           fill = variable, #fill determines groups
+           width = 1, # is the width of the bar (from 0 to 1, the latter has no spacing)
+           ymax=1.0, 
+           ymin=0.0,
+           xmax=54,
+           xmin=0.0)) +     
+  geom_bar(stat = "identity" , colour = "white") + #makes the sep. lines between bars white
+  scale_fill_manual(values=GFoxK2_14Lcols) +  #Sets the colours (assigned by fill = variable above)
+  coord_cartesian(ylim = c(-0.1,1)) + #Set your Y limit to be bound 0-1
+  ggtitle("Gray Fox K=2") +
+  theme(plot.title = element_text(color="black", size=15, face="bold"))+
+  ylab("Probability of assignment\n") + #added newline char to increase space between label
+  theme(axis.title.y = element_text(color="black", size=12, face="bold", vjust=0)) + 
+  theme(axis.title.x = element_text(color="black", size=12, face="bold")) +
+  theme(axis.text.y = element_text(color="black", size=10)) +
+  xlab("Individuals n=64") +
+  theme(axis.text.x = element_blank()) +
+  #annotation_custom(grob=textGrob("E680",gp=gpar(fontsize=12, col="navyblue")), xmin=3,xmax=3,ymin=-0.05, ymax=-0.05) +
+  theme(axis.ticks.x = element_blank()) +
+  theme(panel.background = element_blank()) +
+  #geom_vline(xintercept = c(6.5, 27.5), lwd=0.5, colour="black", lty=1) + #use for creating ticks separating pops
+  guides(fill=FALSE)
+
+```
+
+Current image shows a need for sorting individuals
+2, 24, 25, 32, 41, 52, 53 all sort to K2 - need to see if this is locationally related
+3,7, 38 and 63 have some K2, largely K1
+
+#### Mapping
+
+Need to adapt from Class work 
+
+UTM for Study Area = all counties are in Zone 10
+ - 
+
+```{r Gfox_map}
+
+gfox <- read.csv("Projects/NCST/data/GFox_Microsat_ 2016_spatial.csv")
+
+# Check how many NA's in spatial data
+gfox %>% filter(is.na(Lat)) %>% tally # no NAs!
+
+# make the data "spatial":
+gfox.SP <- SpatialPointsDataFrame(coords = gfox[, c("Long", "Lat")], data = gfox) #will not work with NAs
+
+# check the CRS
+raster::crs(gfox.SP) # should be NA
+lats <-CRS("+init=epsg:3717") # set the default for lat/longs  4326 = WGS 84 CRS projection EPSG:3717
+proj4string(gfox.SP) <- lats # assign the CRS we want to use
+raster::crs(gfox.SP) # should be the full lats obj now
+
+# Transform to UTMs (or whatever)
+utms <- CRS("+init=epsg:32610") # zone 10 UTMs
+
+gfox_utms.SP<-spTransform(x = gfox.SP, CRSobj = utms)
+
+raster::crs(gfox_utms.SP) # should be the full UTMs now
+
+# add UTMs as cols to dataframe?
+gfox.SP@data$utm_y <- gfox_utms.SP@coords[,1]
+gfox.SP@data$utm_x <- gfox_utms.SP@coords[,2]
+
+```
+
+```{r, gfox_shape}
+# shorten/trim all cols to 10 digits
+names(gfox.SP) <- strtrim(names(gfox.SP),10)
+
+writeOGR(gfox.SP, dsn="data/GIS", layer="gfox",  driver="ESRI Shapefile") # need to correct file path
+
+#### Something is off, this is appearing in the Ocean near the equator!
+```
+
+```{r, SR_49}
+#read in road shapefile
+SR_49 <- readOGR(dsn = ("Projects/NCST/data/GIS"), layer = "tl_2016_06_prisecroads")
+
+# Check what the projection is
+crs(SR_49)
+
+```
+
+
+```{r static plot}
+library(maps)
+library(mapdata)  
+suppressPackageStartupMessages(library(ggmap)) # ggplot functionality for maps
+library(ggsn) # for scale bars/north arrows in ggplots
+
+# see what extent is for our shape/points
+extent(gfox.SP)
+
+# Use this in xlim/ylim
+dev.new()
+par(mai=c(0.1,0.1,0.1,0.1))
+par(pin=c(4,4))
+map("state",region=c('CA'), xlim = c(-121.3,-120.65), ylim=c(38.8,39.5))
+map.axes()
+map("county",region=c('CA'),boundary=FALSE,lty=3, add=TRUE)
+
+
+plot(SR_49, add = TRUE)
+
+#add points
+plot(gfox.SP, add = TRUE, pch = 21, bg = "#FDE725FF") #not plotting points
+
+#add marker points for those that yeilded a viable genotype for K1 and K2
+plot(gfox.SP[gfox.SP@data$Genotyped=="K1",], add=TRUE,pch=21, bg="slategray") 
+plot(gfox.SP[gfox.SP@data$Genotyped=="K2",], add=TRUE,pch=21, bg= "wheat3") 
+
+# Create legend
+legend("topright", legend = c("Samples collected", "K1 genotype", "K2 genotype"), 
+			 pt.bg = c("#FDE725FF", "slategray", "wheat3"), col = "black",
+			 pch = c(21))
+
+```
+
+##### Pop Gen Analysis
+
+```{r, popgen_libs}
+
+library(pegas)
+library(adegenet)
+library(PopGenReport)
+library(ecodist)
+```
+
+#### Frequency Based Statistics
+
+`makefreq` (adegenet) - allele frequency
+`allel.rich` (PopGenReport) - allelic richness
+`Hs` (adegenet) - Heterozygosity
+`Hs.test` (adegenet) - Heterozygosity test
+`popgenreport` (PopGenReport) - a whole suite of functions
+`HWE.test.genid` (adegenet) - HWE test
+
+```{r, frq_stats}
+
+#read in STRUCTURE file to create a genid object
+gfox_obj <- read.structure("Projects/NCST/data/gfox_14L_3M_projdata.stru", 
+              n.ind = 64,              # number of individuals
+              n.loc = 14,              # number of markers
+              onerowperind = TRUE,     # TRUE for single row for individual 
+              col.lab = 1,             # integer for column with individual labels
+              col.pop = 2,             # integer for column with population assignment
+              col.others = 0,          # integer for column with other info (locations?)
+              row.marknames = 1   ,    # integer for row containing marker names
+              NA.char = "-99", 
+              pop = NULL,              # optional factor for population for individuals
+              sep = NULL, 
+              ask = TRUE, 
+              quiet = FALSE)
+
+#create lcoi object for pegas
+gfox_pgobj <- genind2loci(gfox_obj)  # may not be needed
+
+#Calculating allele frequency using makefreq from adegenet
+gf_freq <- makefreq(gfox_obj, quiet = TRUE, missing = NA, truenames = TRUE)
+
+#Calculating allelic richness from PopGenReport currently says it is not a function
+allel.rich(gfox_obj, min.alleles = NULL)  #requires the pop column to be filled
+
+#Calculating Heterozygosity from adegenet
+Hs(gfox_obj, pop=NULL) # current heterozygosity is 0.6525153
+
+#Claculating Heterozygosity test  between two groups from adegenet 
+Hs.test(gfox_obj, y, n.sim = 999, alter = c("two-sided", "greater", "less")) #alter = string indicating alternative hypothesis
+
+#HWE test from pegas
+gf_HWE <- hw.test(gfox_obj, B = 1000)
+
+#Calculating porportion of shared alleles from adegenet
+propShared(gfox_obj)
+
+gf_propsh <- genind2df(gfox_obj,sep="|")
+
+# Calculating Linkage Disequilibrium of a matrix from pegas
+LDscan(gfox_obj, quiet = TRUE)  #needs to be a phased object in loci object
+LDmap(d, POS = NULL, breaks = NULL, col = NULL, border = NA,
+angle = 0, asp = 1, cex = 1, scale.legend = 0.8, ...) 
+
+
+#pairwise.fstb (Popgen)
+pairwise.fstb(gfox_obj)  #needs more than one population
+
+
+#`popgenreport` (PopGenReport) - a whole suite of functions
+popgenreport(cats = gfox_obj,                       # genind object
+             mk.counts = TRUE,                  # number of individuals, pops, alleles, etc
+             mk.map = FALSE,                    # need coordinates if turned on
+             maptype = "satellite",             # maps from Google satellite, terrain, hybrid
+             mapdotcolor = "blue",              # markers for individuals on map
+             mapdotsize = 1,                    # markers for individuals on map 
+             mapdotalpha = 0.4,                 # markers for individuals on map
+             mapdottype = 19,                   # markers for individuals on map
+             mapzoom = NULL,                    # map zoom
+             mk.locihz = FALSE,                 # switch for heterozygosity
+             mk.hwe = TRUE,                    # switch for HWE
+             mk.fst = FALSE,                    # switch for Fst
+             mk.gd.smouse = FALSE,              # genetic distance Smouse 1999
+             mk.gd.kosman = FALSE,              # genetic distance Kosman 2005
+             mk.pcoa = FALSE,                   # PCOA
+             mk.spautocor = FALSE,              # Spatial autocorrelation
+             mk.allele.dist = FALSE,            # Allelic distribution by loci and subpops
+             mk.null.all = FALSE,               # Check for null alleles
+             mk.allel.rich = FALSE,             # calculation of allelic richness
+             mk.differ.stats = FALSE,           # Looking at population differentiation stats
+             mk.custom = FALSE,                 # include cutom function
+             fname = "PopGenReport",            # file name
+             foldername = "results",            # name where files are stored
+             path.pgr = NULL,                   # file path
+             mk.Rcode = FALSE,                  # Raw code
+             mk.complete = FALSE,               # run all routines
+             mk.pdf = TRUE)                     # make a pdf
+
+```
+
+
+```{r, popgen_plots}
+
+gfplot <- summary(gfox_obj)
+
+names(gfplot)
+
+dev.new()
+par(mfrow=c(2,2))
+plot(gfplot$loc.n.all, xlab="Sample size", ylab="Number of alleles",main="Alleles numbers and sample sizes", type="n") #not working
+
+text(gfplot$pop.eff,gfplot$pop.nall,lab=names(gfplot$pop.eff))
+
+barplot(gfplot$loc.n.all, ylab="Number of alleles", main="Number of alleles per locus")
+
+barplot(gfplot$Hexp-gfplot$Hobs, main="Heterozygosity: expected-observed", ylab="Hexp - Hobs")
+
+barplot(gfplot$pop.eff, main="Sample sizes per population", ylab="Number of genotypes",las=3)
+
+
+```
+

@@ -1,0 +1,123 @@
+---
+title: "Allelematch 2016"
+author: "Coen, Amanda"
+date: "March 15, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(root.dir = normalizePath("../"))
+knitr::opts_chunk$set(echo = FALSE)
+library(dplyr)
+library(readr)
+library(ggplot2)
+library(dynamicTreeCut)
+library(allelematch)
+```
+
+
+First, clean up the data from microsat results
+1) Sort by samples that are the most complete
+2) Replace all 0 values with -99
+3) Delete all incomplete samples, add these in as they are completed
+
+Read in the data as a dataframe
+```{r, coy_data}
+
+data <- as.data.frame(read.table("data/Coy_Consensus_20170315.txt", header=T, sep="\t")) #needs to be saved as a text file
+
+#need to make sure the empty rows are not showing up as NAs, if so, delete all empty rows
+
+head(data)  #make sure the data was read in properly
+
+#Create a formatted object for analysis with other allematch tools
+CoyData_2016 <- amDataset(data, missingCode = "-99", indexColumn = 1, metaDataColumn = NULL)
+
+```
+
+Once read in as amDataset, need to find the optimal allele mismatch value 
+
+`amUniqueProfile` Determines optimal parameter values for the identification of unique genotypes
+
+`guessOptimum`  If `TRUE` will guess the optimal value of the parameter being profiled by examining the profile for the first minimum associated with a drop in multiple matches as sensitivity to differences among samples decreases.
+
+`consensusMethod` The method (an integer) used to determine the consensus multilocus genotype from a cluster of multilocus genotypes. See amCluster for details.
+
+```{r, opt_params}
+
+amUniqueProfile(CoyData_2016, guessOptim=T, consensusMethod=1)
+
+```
+
+Current data set shows optimal mismatch is 3
+
+```{r, Coy_output}
+
+Coy_2016_mismatch3 <- amPairwise(CoyData_2016, alleleMismatch = 3)
+
+amCSV.amPairwise(Coy_2016_mismatch3,"data_output/CoyAllelematch_2016_14loci_3miss.csv")
+
+```
+Results currently show for 3 mismatch:
+F16-062, F16-097, and F16-101 are the same individual
+F16-250 and F16-253 are the same individual
+F16-314 and F16-316b are the same individual
+F16-254b and F16-257 are the same individual
+Currently 13 unique individuals
+
+Take these unique individuals and format the data for input into Structure
+ - 10000 burn in
+ - 100000 MMC
+ - 10 Reps
+ 
+Take Results folder, zip it and label with the name of the run, input into structureHarvester
+http://taylor0.biology.ucla.edu/structureHarvester/
+
+```{r, gfox_data}
+
+data <- as.data.frame(read.table("data/GFox_Consensus_20170316.txt", header=T, sep="\t")) #needs to be saved as a text file
+
+#need to make sure the empty rows are not showing up as NAs, if so, delete all empty rows
+
+head(data)  #make sure the data was read in properly
+
+#Create a formatted object for analysis with other allematch tools
+GFoxData_2016 <- amDataset(data, missingCode = "-99", indexColumn = 1, metaDataColumn = NULL)
+
+```
+
+```{r, opt_params_2}
+
+amUniqueProfile(GFoxData_2016, guessOptim=T, consensusMethod=1)
+
+```
+
+Current data set shows optimal mismatch is 3
+
+```{r, GFox_output}
+
+GFox_2016_mismatch3 <- amPairwise(GFoxData_2016, alleleMismatch = 3)
+
+amCSV.amPairwise(GFox_2016_mismatch3,"data_output/GFoxAllelematch_2016_14loci_3miss.csv")
+
+```
+Results currently show:
+F16-048 and F16-049 are the same individual
+F16-063	and F16-115
+F16-081	and F16-135
+F16-086, F16-087, F16-138 and F16-139
+F16-105 and	F16-106
+F16-146, F16-148, and F16-151
+F16-152	F16-153
+F16-166	F16-167
+F16-212	F16-215b
+F16-227, F16-232, and F16-234
+F16-168	F16-165
+
+
+
+
+
+
+
+Currently 15 unique individuals

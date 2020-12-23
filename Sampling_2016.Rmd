@@ -1,0 +1,373 @@
+---
+title: "2016_Sampling"
+author: "Coen, Amanda"
+date: "January 23, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(root.dir = normalizePath("../"))
+library(dplyr)
+```
+
+##Sample Progress for extracting, sequencing and genotyping from scat samples collected in 2016
+
+
+```{r, enter_csv}
+scats <- read.csv("data/Sample_Log_2016.csv")
+
+str(scats)
+
+```
+
+If I want to make two dataframes, one for gray fox samples (Gf) and one for coyote (Cy)
+
+```{r, sub_sample}
+
+coys <- scats %>% 
+        filter(Sp_fin == "Cy") %>% 
+        filter(Re_extract == "") %>% 
+        select(Sample, Sp_fin, Sp_call1, Sp_call2)
+
+write.csv(coys, file = "data_output/coy_Msats.csv", row.names=FALSE)
+
+tally(coys)     #currently I have 47 coyote samples (*headdesk*)
+
+
+gfox <- scats %>% 
+        filter(Sp_fin == "Gf") %>% 
+        filter(Re_extract == "") %>% 
+        select(Sample, Sp_fin, Sp_call1, Sp_call2)
+
+write.csv(gfox, file = "data_output/gfox_Msats.csv", row.names=FALSE)
+
+tally(gfox)    # currently I have 211 gray fox sample (all is not lost)
+
+```
+
+Want to know what samples still need to be re-run 
+
+1)  Failed all 3 pcr tests - need to be re-extracted
+2)  Failed first two pcr, successful last...sequence?
+3)  Failed two - needs a 3rd pcr  **(pcr_3rd)**
+4)  Failed one pcr - needs to be re-run **(pcr_2nd)**
+5)  Success 1st time, failed last two - need to be re-extracted
+6)  Success 1st and 2nd - need to be sequenced
+7)  Success 1st, failed 2nd - need another pcr **(pcr_3rd)**
+8)  Success 1st - sequence? (Currently depends on fate of a Ctrl band for this plate)
+
+Samples that need more pcr
+```{r, re_pcr}
+
+pcr_3rd <- scats %>% 
+           filter(Re_extract == "") %>% # removes any samples that have been re-extracted
+           filter(Band_1 == "Yes" | Band_1 == "No") %>% 
+           filter(Band_2 == "No") %>% 
+           filter(Band_3 == "") %>% 
+           filter(Sp_call1 == "Fail" | Sp_call1 == "Human" | Sp_call1 == "") %>% 
+           select(Sample, SPID_PCR_1, Band_1, SPID_PCR_2, Band_2, SPID_PCR_3, Band_3, Sp_call1)
+
+pcr_2nd <- scats %>% 
+           filter(Re_extract == "") %>% # removes any samples that have been re-extracted
+           filter(Band_1 == "No") %>% 
+           filter(Band_2 == "") %>% 
+           select(Sample, SPID_PCR_1, Band_1, SPID_PCR_2, Band_2, SPID_PCR_3, Band_3, Sp_call1)
+
+#potential_pcr <- scats %>% 
+  
+
+# not working, play with later core_columns <- scats %>% select(Sample, SPID_PCR_1, Band_1, SPID_PCR_2, Band_2, SPID_PCR_3, Band_3, Sp_call1)
+  
+```
+
+Samples ready for sequencing
+
+```{r, seq_ready}
+
+#Samples that failed 1st and 2nd pcr, 3rd gave a band, sequencing still failed, needs to be re-sequenced --or-- Samples that 
+seq_FFT <- scats %>% 
+           filter(Re_extract == "") %>% # removes any samples that have been re-extracted
+           filter(Band_1 == "Yes" | Band_1 == "No") %>% 
+           filter(Band_2 == "Yes" | Band_2 == "No") %>% 
+           filter(Band_3 == "Yes" | Band_3 == "") %>% 
+           filter(Sp_call1 == "Fail" | Sp_call1 == "Human" | Sp_call1 == "") %>% 
+           select(Sample, SPID_PCR_1, Band_1, SPID_PCR_2, Band_2, SPID_PCR_3, Band_3, Sp_call1)
+
+```
+
+####Sequencing results
+
+I want to compare success for those samples that were re-sequenced
+
+```{r, reseq_fate}
+
+fail_seq <- scats %>% 
+             select(Sample, Sequence_1, Sp_call1, Sequence_2, Sp_call2) %>% 
+             filter(Sp_call1 == "Fail") %>% 
+             filter(!is.na(Sequence_2))
+
+gf_seq1 <- scats %>% 
+           select(Sample, Sequence_1, Sp_call1, Sequence_2, Sp_call2) %>% 
+           filter(Sp_call1 == "Gf") %>% 
+           filter(Sequence_1 == 20170120) %>% 
+           filter(!is.na(Sequence_2))  #yay nothing switched from Gf to other
+
+coy_seq1 <- scats %>% 
+           select(Sample, Sequence_1, Sp_call1, Sequence_2, Sp_call2) %>% 
+           filter(Sp_call1 == "Cy") %>% 
+           filter(Sequence_1 == 20170120) %>% 
+           filter(!is.na(Sequence_2))  
+
+
+
+
+```
+
+
+
+```{r, re_run_fail_seq}
+
+seq_fail <- scats %>% 
+            filter(Sp_call1 == "Fail" | Sp_call1 == "Human") %>% 
+            select(Sample, Sp_call1)
+
+tally(seq_fail)   #42 samples that will need to by re-sequenced due to failure (34) or human contamination (8).
+
+summary(seq_fail)
+```
+
+```{r, fishy_seqs}
+seq_fishy_FB2 <- scats %>% 
+              filter(Sp_call1 == "Cy" | Sp_call1 == "Gf") %>% 
+              filter(Band_1 == "No") %>% 
+              filter(!is.na(Band_2)) %>%
+              filter(Band_2 == "No") %>% 
+              select (Sample, SPID_PCR_1, Band_1, SPID_PCR_2, Band_2, Band_3, Sp_call1)
+#Samples 50 (B_1 = F, B_2 = F, Sq = Gf), 114 (B_1 = F, B_2 = F, B_3 = T, Sq = Cy), and 120 (B_1 = F, B_2 = F, B_3 = T, Sq = Gf) all should be re-sequenced using the Band_3 PCR source
+
+seq_fishy_FB1 <- scats %>% 
+              filter(Band_1 == "No") %>% 
+              filter(is.na(Band_2)) %>%
+              select (Sample, SPID_PCR_1, Band_1, SPID_PCR_2, Band_2, Band_3, Sp_call1)
+#good, no sequences resulted from a sample that failed its only PCR
+
+seq_fishy_F1T2 <- scats %>% 
+              filter(Sp_call1 == "Cy" | Sp_call1 == "Gf") %>% 
+              filter(Band_1 == "No") %>% 
+              filter(!is.na(Band_2)) %>%
+              filter(Band_2 == "Yes") %>% 
+              select (Sample, SPID_PCR_1, Band_1, SPID_PCR_2, Band_2, SPID_PCR_3, Band_3, Sp_call1)
+#Samples 106,109,110,142,143,145,148,151,152,153,154. All of these were re-PCR for a 3rd time and will be sent out for sequencing on 01/30/17
+
+```
+
+
+Next I am sorting by samples that hae failed the first PCR (need to be re-run), passed first but failed a second PCR (Contamination and need to be re-run?), and samples that have failed both PCR runs (need to be re-extracted)
+
+```{r, clutter}
+
+simple_view <- scats %>% 
+                filter(Re_extract == "") %>% 
+                select(Sample, Band_1, SPID_PCR_1, Band_2, SPID_PCR_2, Band_3, SPID_PCR_3, Sp_call1, Seq_Comp)
+
+```
+
+
+
+#Samples that need more PCR work
+
+Only have one Band, which may or may not have failed in sequencing
+
+```{r, pcr2nd}
+pcr_2 <- scats %>% 
+              filter(Re_extract == "") %>%  #removing  samples that have a secondary extract
+              filter(Band_1 == "No") %>%  #Got a band or not first time
+              filter(is.na(Band_2)) %>% 
+              filter(Sp_call1 == "") %>% 
+              select(Sample, Band_1, Band_2, Band_3, Sp_call1)
+
+
+#not sure below is needed, the only piece that returns is a sample that was later re-extracted
+pcr_2seq <- scats %>% 
+              filter(Re_extract == "") %>% 
+              filter(Band_1 == "No") %>%  #Got a band or not first time
+              filter(is.na(Band_2)) %>% 
+              filter(Sp_call1 == "Gf" | Sp_call1 == "Cy" | Sp_call1 == "Fail" | Sp_call1 == "Human" ) %>% 
+              select(Sample, Band_1, Band_2, Band_3, Sp_call1)
+
+# Use this to find samples that gave a pcr positive the second time and had been sent out for sequencing
+pcr_2seqB3_NA <- scats %>% 
+               filter(Band_1 == "No") %>% 
+               filter(Band_2 == "Yes") %>% 
+               filter(is.na(Band_3)) %>% 
+               select(Sample, Band_1, SPID_PCR_2, Band_2, Band_3, Sp_call1)
+
+```
+
+Have been attempted twice, need one more attempt
+
+```{r, pcr3rd}
+
+# Use to find samples that require a 3rd pcr attempt
+              
+pcr_3 <- scats %>% 
+              filter(Re_extract == "") %>%  #removes any samples that had been extracted a second time, I don't want to continue working with those older samples
+              filter(Band_1 == "No" | Band_1 == "Yes") %>%  #Got a band or not first time
+              filter(Band_2 == "No") %>%  # No band on 2nd attempt
+              filter(is.na(Band_3)) %>% 
+              select(Sample, Band_1, Band_2, Band_3, Sp_call1)
+
+```
+
+####Samples to be sequenced
+
+
+```{r, seq_20170130}
+
+#sequences needed for those that their 1st pcr was successful
+seq_2_pcr1 <- scats %>% 
+               filter(Re_extract == "") %>% 
+               filter(Band_1 == "Yes") %>% 
+               filter(is.na(Band_2)) %>% 
+               filter(is.na(Band_3)) %>% 
+               select(Sample, SPID_PCR_1, Band_1, Band_2, Band_3, Sp_call1)
+
+
+#Sequences needed for those that the second pcr was successful
+seq_2_pcr2 <- scats %>% 
+               filter(Re_extract == "") %>% 
+               filter(Band_1 == "No" | Band_1 == "Yes") %>% 
+               filter(Band_2 == "Yes") %>% 
+               filter(is.na(Band_3)) %>% 
+               select(Sample, Band_1, SPID_PCR_2, Band_2, SPID_PCR_3 ,Band_3, Sp_call1)
+
+
+#Sequences needed for those that 3rd pcr was successful
+seq_2_pcr3 <- scats %>% 
+               filter(Re_extract == "") %>% 
+               filter(Band_1 == "No" | Band_1 == "Yes") %>% 
+               filter(Band_2 == "No" | Band_2 == "Yes") %>% 
+               filter(!is.na(Band_3)) %>% 
+               filter(Band_3 == "Yes") %>% 
+               select(Sample, Band_1, SPID_PCR_2, Band_2, SPID_PCR_3 ,Band_3, Sp_call1)
+
+```
+
+Going t filter out samples that have completed the sequencing step( Assigned Gf, Cy, Sk) and have been identified as a species of interest, not failed or Human.
+
+```{r, scat_update}
+
+scats_finished <- scats %>%
+                    
+                    filter(Seq_Comp == "Yes") %>% 
+                    select(Sample, Sp_call1, Seq_Comp)
+
+scats_2bfin1 <- scats %>% 
+               filter(Re_extract == "") %>% 
+               filter(Sequence_1 == "20170120_Fail" | Sequence_1 == "20170120" | Sequence_1 == "20170130"| Sequence_1 == "") %>% 
+               filter(is.na(Seq_Comp)) %>% 
+               select(Sample, SPID_PCR_1, Band_1, SPID_PCR_2, Band_2, SPID_PCR_3, Band_3, Sp_call1, Sequence_1, Sequence_2)
+#going to need to filter this by Sequence_1 values (20170120, 20170120_Fail, 20170130, ""), and for some Sequence_2 (20170130)  
+
+scats_2bfin2 <- scats %>% 
+               filter(Re_extract == "") %>% 
+               filter(Sequence_1 == "20170120_Fail" | Sequence_1 == "20170120" | Sequence_1 == "20170130" | Sequence_1 == "") %>% 
+               filter(Sequence_2 == "20170130") %>% 
+               filter(is.na(Seq_Comp)) %>% 
+               select(Sample, SPID_PCR_1, Band_1, SPID_PCR_2, Band_2, SPID_PCR_3, Band_3, Sp_call1, Sequence_1, Sequence_2)
+               
+                    
+```
+
+
+
+
+####Parsing out samples to re-extract after 3 failed PCR attempts 
+
+*(Some of these had a band in the first attempt, but all failed to sequence except as human conatmination)
+
+```{r, re_ex}
+
+re_extract <- scats %>% 
+              filter(!is.na(Band_3)) %>% 
+              filter(Band_1 == "No" | Band_1 == "Yes") %>%  #Got a band or not first time
+              filter(Band_2 == "No") %>%  # No band on 2nd attempt
+              filter(Band_3 == "No") %>%  # No band on 3rd attempt
+              select(Sample, Band_1, Band_2, Band_3, Sp_call1)   
+              
+```  
+
+
+###Sequencing
+
+Samples that need to be sequenced 
+
+
+```{r, seq_pcr1}
+
+seq_pcr1 <- scats %>% 
+            filter(Band_1 == "Yes") %>% 
+            filter(is.na(Band_2)) %>% 
+            filter(Sp_call1 == "Fail" | Sp_call1 == "Human" | Sp_call1 == "") %>% 
+            select(Sample, Band_1, Band_2, Band_3, Sp_call1)
+
+
+#            filter(Band_3 == "Yes" | Band_2 == "NA") %>%
+```
+
+
+
+```{r}
+#no band on 3rd attempt or have not run a 3rd time
+
+pcr1_fail <- scats %>% 
+            filter(Band_1 == "No") %>% 
+            filter(is.na(Band_2)) %>% 
+            select(Sample, Band_1, Band_2, Sp_call1)   
+
+pcr2_fp <- scats %>% 
+           filter(Band_1 == "Yes", Band_2 == "No") %>% 
+           select(Sample, Band_1, Band_2, Sp_call1)
+
+
+
+```
+
+
+
+Saving the current progess as CSV so I can see what samples need to be pulled
+
+```{r, writ_csv}
+
+write.csv(coys, file = "data_output/coy_samples.csv", row.names=FALSE)
+
+write.csv(gfox, file = "data_output/gfox_samples.csv", row.names =FALSE)
+
+#need to see how to combine filtering for multiple....duh | ('or', not , = 'and')
+
+```
+
+Making a list of samples that have been re-extracted to remove from storage and a list for non-target samples to be organized in storage.
+
+```{r, rxted_list}
+
+rxted_list <- scats %>% 
+            filter(Re_extract == "Yes") %>% 
+            select(Sample, Re_extract)
+
+```
+
+```{r, non_target}
+
+non_target <- scats %>% 
+              filter(Re_extract == "") %>%
+              filter(Sp_fin == "" | Sp_fin == "Mixed" | Sp_fin == "Miss-Dg" | Sp_fin == "Fail" | Sp_fin == "Miss-Bc" | Sp_fin == "Miss-Mule Deer" | Sp_fin == "Miss-Sk" | Sp_fin == "Miss-Wolf" | Sp_fin == "Miss-Wb" | Sp_fin == "Mixed-Gf") %>% 
+              arrange(Sp_fin) %>% 
+              select(Sample, Sp_fin)
+
+summary(non_target)
+
+write.csv(non_target, file = "data_output/non_target_Fails.csv", row.names=FALSE)
+```
+
+
