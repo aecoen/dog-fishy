@@ -1,0 +1,39 @@
+Traffic mapping and Census data
+
+
+2/13/2017 - Downloaded Caltrans traffic data for 2015 as an xls. 
+
+Notes about Traffic info:
+-  AADT = Traffic counts from Oct 1st - Sept 30th, diveded by 365
+-  Ahead = North or East, Back = South or West
+
+Next steps:  
+
+- Format column titles
+- Sort into SR 50, 680, 580, 101, and 49
+- Filter these by the pertent milemarkers/Counties
+
+
+From census catalog site:
+-  Rural-Urban Commuting Area Codes 
+      - "The rural-urban commuting area codes (RUCA) classify U.S. census tracts using measures  
+        of urbanization, population density, and daily commuting from the decennial census."
+-  2010 census population (LA Area)
+-  http://www2.census.gov/geo/tiger/TIGER2013/COUSUB/ - need to find whichcousub corresponds to     CA
+-  tl_2015_us_cbsa.zip - National shapefile for Metro/Micropolitan areas
+-  TIGER/Line Shapefile, 2010, Series Information File for the 2010 Census Block State-based  
+   Shapefile with Housing and Population Data (download?)
+-  road density shp
+-  All western roads shp
+-  tl_2015_us_uac10 - Census Urban Areas
+
+
+
+Still need to download: (Use search 2010 Cencus California)
+-  cen00b1 - Censu from 2000 for CA, can't download now, but will try again later
+-  Census 2000 Urbanized Areas (CEN00UA02_2), can't download now, but will try again later
+-  Census 2000 Block Group Data (cen00bg03)
+-  Tiger roads
+-  Census 2000 Places (cen00pl02)
+-  2010 Census Traffic Analysis Zone (TAZ) State-based Shapefile  
+
