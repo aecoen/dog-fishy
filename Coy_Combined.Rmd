@@ -493,11 +493,11 @@ soh49.gen_geo
 library(ResistanceGA)
 
 #MLPE.lmm(resistance, pairwise.genetic, REML = FALSE, ID = NULL, ZZ = NULL, scale = TRUE)
-resistance <- read.csv("data/GIS/test_res.csv", header = FALSE)
+resistance <- read.csv("data/GIS/gf_resistance_traffic.csv", header = FALSE)
 
-pairwise.genetic <- read.csv("data/GIS/test_gen.csv", header = FALSE) 
+pairwise.genetic <- read.csv("data/GIS/gf_gen_dist.csv", header = FALSE) 
 
-MLPE.lmm(resistance, pairwise.genetic, REML = FALSE, ID = NULL, ZZ = NULL, scale = TRUE)
+MLPE.lmm(resistance, lower(pairwise.genetic), REML = FALSE, ID = NULL, ZZ = NULL, scale = TRUE)
 
 
 ```
