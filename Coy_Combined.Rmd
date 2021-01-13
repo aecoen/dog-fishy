@@ -489,13 +489,13 @@ soh49.gen_geo
 #### Modeling
 
 ```{r}
-devtools::install_github("wpeterman/ResistanceGA", build_vignettes = TRUE)
+#devtools::install_github("wpeterman/ResistanceGA", build_vignettes = TRUE)
 library(ResistanceGA)
 
 #MLPE.lmm(resistance, pairwise.genetic, REML = FALSE, ID = NULL, ZZ = NULL, scale = TRUE)
-resistance <- read.csv("data/GIS/snf_resistance_traffic.csv", header = FALSE)
+resistance <- read.csv("data/GIS/test_res.csv", header = FALSE)
 
-pairwise.genetic <- read.csv("data/GIS/snf_gen_dist.csv", header = FALSE) 
+pairwise.genetic <- read.csv("data/GIS/test_gen.csv", header = FALSE) 
 
 MLPE.lmm(resistance, pairwise.genetic, REML = FALSE, ID = NULL, ZZ = NULL, scale = TRUE)
 
