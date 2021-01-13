@@ -1,49 +1,151 @@
+Summary
+	Species/Area	Model								AIC
+	Coy-SNF			Landscape permeable					2371.765
+					Roads impermeable					2370.778
+					Road permeability traffic dependent 2371.022
+					
+	Coy-BA			Landscape permeable					711.6304
+					Roads impermeable					711.6304
+					Road permeability traffic dependent 711.6404
+					
+	GF-SNF			Landscape permeable					2780.153
+					Roads impermeable					2779.739
+					Road permeability traffic dependent 2779.915
+
+
+
+
 SNF study areas
 
 model 1 genetic distances on resistance surface where all cells set to 1 (hwys are not a barrier)
 
 	Linear mixed model fit by maximum likelihood  ['lmerMod']
-		AIC       BIC    	logLik  	deviance  	df.resid 
-		5185.365  5208.170 	-2588.682  	5177.365    2207 
+		AIC       BIC    logLik  deviance  df.resid 
+		2371.765  2394.570 -1181.882  2363.765      2207 
 	Random effects:
 		Groups   Name        Std.Dev.
-		pop1     (Intercept) 0.0000  
-		Residual             0.7803  
+		pop1     (Intercept) 0.3126  
+		Residual             0.3901  
 		Number of obs: 2211, groups:  pop1, 67
 	Fixed Effects:
 		(Intercept)   resistance  
-		4.926635     0.007077
+		5.0402       0.1164
 
 
 Model 2 genetic distances on resistance surface where all road cells set to 100 (hwys are complete barrier)
 
 	Linear mixed model fit by maximum likelihood  ['lmerMod']
-		AIC       BIC    	logLik  	deviance  	df.resid 
-		5185.347  5208.152 	-2588.673  	5177.347    2207 
+		AIC       BIC    logLik  deviance  df.resid 
+		2370.778  2393.582 -1181.389  2362.778      2207 
 	Random effects:
 		Groups   Name        Std.Dev.
-		pop1     (Intercept) 0.0000  
-		Residual             0.7803  
+		pop1     (Intercept) 0.3124  
+		Residual             0.3900  
 		Number of obs: 2211, groups:  pop1, 67
 	Fixed Effects:
 		(Intercept)   resistance  
-		4.926635     0.00742 
+		5.0402       0.1176
 
 
 Model 3 genetic distances on resistance surface where road cells are binned based on traffic rates
 
 	Linear mixed model fit by maximum likelihood  ['lmerMod']
-		AIC       BIC    	logLik  	deviance  	df.resid 
-		5185.333  5208.138 	-2588.667  	5177.333    2207 
+		AIC       BIC    logLik  deviance  df.resid 
+		2371.022  2393.827 -1181.511  2363.022      2207 
 	Random effects:
 		Groups   Name        Std.Dev.
-		pop1     (Intercept) 0.0000  
-		Residual             0.7803  
+		pop1     (Intercept) 0.3126  
+		Residual             0.3900  
 		Number of obs: 2211, groups:  pop1, 67
 	Fixed Effects:
 		(Intercept)   resistance  
-		4.926635     0.007662
+		5.0402       0.1176  
 
 
 BA results
 
+model 1 genetic distances on resistance surface where all cells set to 1 (hwys are not a barrier)
+
+	Linear mixed model fit by maximum likelihood  ['lmerMod']
+		AIC       BIC    logLik  deviance  df.resid 
+		711.6304  727.9318 -351.8152  703.6304       431 
+	Random effects:
+		Groups   Name        Std.Dev.
+		pop1     (Intercept) 0.3450  
+		Residual             0.4949  
+		Number of obs: 435, groups:  pop1, 30
+	Fixed Effects:
+		(Intercept)   resistance  
+		4.9951       0.2762
+
+Model 2 genetic distances on resistance surface where all road cells set to 100 (hwys are complete barrier)
+
+	Linear mixed model fit by maximum likelihood  ['lmerMod']
+		AIC       BIC    logLik  deviance  df.resid 
+		711.6304  727.9318 -351.8152  703.6304       431 
+	Random effects:
+		Groups   Name        Std.Dev.
+		pop1     (Intercept) 0.3450  
+		Residual             0.4949  
+		Number of obs: 435, groups:  pop1, 30
+	Fixed Effects:
+		(Intercept)   resistance  
+		4.9951       0.2762
+
+Model 3 genetic distances on resistance surface where road cells are binned based on traffic rates
+
+		AIC       BIC    logLik  deviance  df.resid 
+		711.6404  727.9418 -351.8202  703.6404       431 
+	Random effects:
+		Groups   Name        Std.Dev.
+		pop1     (Intercept) 0.3452  
+		Residual             0.4949  
+		Number of obs: 435, groups:  pop1, 30
+	Fixed Effects:
+		(Intercept)   resistance  
+		4.9951       0.2763
+
+GF results
+
+model 1 genetic distances on resistance surface where all cells set to 1 (hwys are not a barrier)
+
+	Linear mixed model fit by maximum likelihood  ['lmerMod']
+		AIC       BIC    logLik  deviance  df.resid 
+		2780.153  2801.654 -1386.076  2772.153      1592 
+	Random effects:
+		Groups   Name        Std.Dev.
+		pop1     (Intercept) 0.5313  
+		Residual             0.5368  
+		Number of obs: 1596, groups:  pop1, 57
+	Fixed Effects:
+		(Intercept)   resistance  
+		4.73861      0.01447  
+	
+Model 2 genetic distances on resistance surface where all road cells set to 100 (hwys are complete barrier)
+
+	Linear mixed model fit by maximum likelihood  ['lmerMod']
+		AIC       BIC    logLik  deviance  df.resid 
+		2779.739  2801.240 -1385.870  2771.739      1592 
+	Random effects:
+		Groups   Name        Std.Dev.
+		pop1     (Intercept) 0.5291  
+		Residual             0.5368  
+		Number of obs: 1596, groups:  pop1, 57
+	Fixed Effects:
+		(Intercept)   resistance  
+		4.73861      0.02075
+
+
+Model 3 genetic distances on resistance surface where road cells are binned based on traffic rates
+
+	Linear mixed model fit by maximum likelihood  ['lmerMod']
+		AIC       BIC    logLik  deviance  df.resid 
+		2779.915  2801.416 -1385.957  2771.915      1592 
+	Random effects:
+		Groups   Name        Std.Dev.
+		pop1     (Intercept) 0.5301  
+		Residual             0.5368  
+		Number of obs: 1596, groups:  pop1, 57
+	Fixed Effects:
+		(Intercept)   resistance  
+		4.73861      0.01763 
