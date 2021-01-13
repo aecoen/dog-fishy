@@ -1,0 +1,945 @@
+---
+title: "Coyote_Joint"
+author: "Amanda Coen"
+date: "12/28/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(root.dir = normalizePath("../"))
+setwd("C:/Users/Amanda/Desktop/Projects/R_projects/NCST/dog-fishy")
+```
+
+
+```{r,libraries, echo=FALSE, results='hide',message=FALSE}
+library(dplyr)
+library(sp)
+library(rgdal)
+library(ggplot2)
+library(maps)
+library(mapdata) 
+library(ggmap)
+library(ggsn)
+```
+
+#### Allelematch
+
+###### F14-Su15 Coyote
+
+Read in the data as a dataframe
+```{r, Coy_consensus}
+library(allelematch)
+#2014-2015 sampling
+data_85 <- as.data.frame(read.table("data/Coy/Coy_Consensus_202012.txt", header=T, sep="\t")) #needs to be saved as a text file
+
+#2016 Sampling
+data_85 <- as.data.frame(read.table("Projects/NCST/data/Coy/Coy_Consensus_85_20170322.txt", header=T, sep="\t"))
+
+#Create a formatted object for analysis with other allematch tools
+CoyData_85_2016 <- amDataset(data_85, missingCode = "-99", indexColumn = 1, metaDataColumn = NULL)
+
+```
+
+Once read in as amDataset, need to find the optimal allele mismatch value 
+
+`amUniqueProfile` Determines optimal parameter values for the identification of unique genotypes
+
+`guessOptimum`  If `TRUE` will guess the optimal value of the parameter being profiled by examining the profile for the first minimum associated with a drop in multiple matches as sensitivity to differences among samples decreases.
+
+`consensusMethod` The method (an integer) used to determine the consensus multilocus genotype from a cluster of multilocus genotypes. See amCluster for details.
+
+```{r, opt_params}
+
+amUniqueProfile(CoyData_85_2016, guessOptim=T, consensusMethod=1)  #will guess the optimal value of the parameter being profiled by examining the profile for the first minimum associated with a drop in multiple matches as sensitivity to differences among samples decreases.
+
+```
+
+CoyData_85 shows optimal mismatch is 4 suggests 77 unique
+
+```{r, coy_output}
+
+Coy85_2016_mismatch4 <- amPairwise(CoyData_85_2016, alleleMismatch = 4)
+
+amCSV.amPairwise(Coy85_2016_mismatch4, "data/Coy/Coy85_Allelematch_14L4M_202012.csv")
+
+amCSV.amPairwise(Coy77_2016_mismatch4, "data/Coy/Coy85_Allelematch_14L4M_20170322.csv")
+
+```
+2014-2015 Results currently show for 85%: 77 individuals
+    F14-032 & F14-036 are the same --> Use F14-036
+    F14-177 & F14-178 are the same --> Use F14-178
+    F14-242 & F14-243 are the same --> Use F14-243
+    F14-020 & F14-046 are the same --> Use F14-020
+    F14-167 & F14-179 are the same --> Use F14-179
+    F14-193 & F14-191 are the same --> Use F14-193
+    F14-152 & F14-153 are the same --> Use F14-152
+    F14-155 differs from 152/153 by one allele (210 vs 180 for REN169O18coyote)
+    F14-013 & F14-016 are the same --> Use F14-013
+    F14-119 & F14-121 are the same --> Use F14-121
+
+Create a csv file cleaning up the Allelematch results, remove K9_AMELO
+  - `Coy85_201604_Alm_14L4M_20170515.csv` to be used for STRUCTURE Run
+  - Separate BA and Sac individuals before run
+  - Use csv file in STRUCTURE, zip Results file and import in STRUCTURE Harvester to determine most likely K value
+
+2016 Results 85% 13 individuals
+    F16-250 and F16-253 are the same individual (use `F16-250`)
+    F16-314 and F16-316b are the same individual (use `F16-316b`)
+    F16-254b and F16-257 are the same individual (use `F16-254b`)
+    F16-062, F16-097, and	F16-101 are the same individual (use `F16-062`)
+**note** If miscmatch is dropped to 4, F16-097 parses out as unique, no Y marker, missing CPH11 and REN169O18 is 322/328. F16-062 is HO 322, and 101 is HE 322/326 
+
+Download Clumpp indfile, use in CLUMPP to generate INDQ files for use in Stacked Bar Plot   
+
+#### Structure Plotting
+
+**Sac_Snf_pops** - run 10 iterations, 100,000 burn-in, 1,000,000 `With admixture`
+       K	Reps	Mean LnP(K)	  Stdev LnP(K)     Ln'(K)	       |Ln''(K)|	    Delta K
+       1	10	-3307.680000	  0.402216	       —	           —	            —
+       2	10	-3295.630000	  35.325284	       12.050000	   130.580000	    3.696503
+       3	10	-3153.000000	  34.520171	       142.630000	   38.670000	    1.120215
+      *4	10	-2971.700000	  1.639105	       181.300000	   138.180000	    84.302081*
+       5	10	-2928.580000	  1.626038	       43.120000	   0.140000	      0.086099
+       6	10	-2885.600000	  3.672420	       42.980000	   13.720000	    3.735956
+       7	10	-2856.340000	  1.831939	       29.260000	   28.360000	    15.480866
+       8	10	-2855.440000	  8.862179	       0.900000	     36.580000	    4.127653
+       9	10	-2891.120000	  30.775308	       -35.680000	   —	            —
+
+##### Colors
+```{r, colorsets}
+sac_snf_col2 <- c("purple", "yellow", "green", "black") #"blue", 
+
+```
+
+##### Melts and data formats
+Read in data and melt files by ID
+```{r, melts}
+library(reshape)
+scsnfk2 <- read.table("data/Coy/sac_snf_k2.txt", header=TRUE)
+scsnfk2.m <- melt(scsnfk2, id.var="ID")
+
+scsnfk3 <- read.table("data/Coy/sac_snf_k3.txt", header=TRUE)
+scsnfk3.m <- melt(scsnfk3, id.var="ID")
+
+scsnfk4 <- read.table("data/Coy/sac_snf_k4.txt", header=TRUE)
+scsnfk4.m <- melt(scsnfk4, id.var="ID")
+```
+
+##### Structure Plots
+```{r, strct_plot}
+library(ggplot2)
+dev.new()
+
+ggplot(scsnfk3.m, 
+       aes(x = ID,   #Just sets your x and y values
+           y = value, 
+           fill = variable, #fill determines groups
+           width = 1, # is the width of the bar (from 0 to 1, the latter has no spacing)
+           ymax=1.0, 
+           ymin=0.0,
+           xmax=67, 
+           xmin=0.0)) +     
+  geom_bar(stat = "identity") + #, colour = "white") makes the sep. lines between bars white
+  scale_fill_manual(values=sac_snf_col2) +  #Sets the colours (assigned by fill = variable above)
+  coord_cartesian(ylim = c(0,1)) + #Set your Y limit to be bound 0-1
+  ggtitle("Sac/SNF K=3") +
+  theme(plot.title = element_text(color="black", size=15, face="bold", hjust=0.5))+
+  theme(axis.title.y = element_text(color="black", size=12, face="bold")) + 
+  ylab("Probability of assignment\n") + #added newline char to increase space between label
+  theme(axis.title.x = element_text(color="black", size=12, face="bold", vjust=0)) +
+  xlab("Individuals n=67") +
+  theme(axis.text.y = element_text(color="black", size=10)) +
+  theme(axis.text.x = element_text(angle = 45, size = 20, vjust = 0.6)) +
+  #scale_x_continuous(breaks = c(67, 162, 205, 244, 291, 275, 348, 381, 421, 463, 515, 567, 609, 655, 694), 
+   #                labels = c("ABBL", "ALMR", "CLLR", "WSVR", "GRYL", "JEWL", "LWSL", "PYRL", "SNWR", "BNT23", "BNT4", "BRPT", "BSCR", "CROL", "SINL")) +
+  theme(panel.background = element_blank()) +
+  guides(fill=FALSE)
+
+
+
+plot(coy.SP[coy.SP@data$Ind.ID=="F16-142",], add = TRUE, pch = 21, bg = "blue")
+plot(coy.SP[coy.SP@data$Ind.ID=="F16-205",], add = TRUE, pch = 21, bg = "red")
+plot(coy.SP[coy.SP@data$Ind.ID=="F16-207",], add = TRUE, pch = 21, bg = "orange")
+plot(coy.SP[coy.SP@data$Ind.ID=="F16-289",], add = TRUE, pch = 21, bg = "deeppink1")
+plot(coy.SP[coy.SP@data$Ind.ID=="F16-085",], add = TRUE, pch = 21, bg = "lightslateblue")
+plot(coy.SP[coy.SP@data$Ind.ID=="F16-190",], add = TRUE, pch = 21, bg = "darkgreen")
+plot(coy.SP[coy.SP@data$Ind.ID=="F16-253",], add = TRUE, pch = 21, bg = "gold")
+plot(coy.SP[coy.SP@data$Ind.ID=="",], add = TRUE, pch = 21, bg = "maroon")
+
+```
+#### Pop Gen
+
+#####Holms-Bonferroni correction for HWE loci
+```{r, holms}
+# Do not need to sort low to high, as.numeric does so automatically
+
+#HWE loci order = AHTh171B, CPH11, CPH18, CXX468, CXX602, REN54P11, AHT137, AHT142, CXX.279, CXX.374, INU055, REN162C04, REN169O18coyote
+
+E680 <- c(0.219, 0.586, 0.624, 0.132, 0.346, 0.285, 0.263, 0.682, 0.629, 0.414, 0.794, 0.466, 0.317)
+p.adjust(E680, method = "holm", n = 13)
+#1 1 1 1 1 1 1 1 1 1 1 1 1
+
+W680 <- c(0.065, 0.000, 0.000, 0.329, 0.316, 0.000, 0.720, 0.008, 0.001, 0.030, 0.037, 0.001, 0.236)
+p.adjust(W680, method = "holm", n = 13)
+#0.325 0.000 0.000 0.948 0.948 0.000 0.948 0.064 0.010 0.210 0.222 0.010 0.944
+
+PLS <- c(0.505, 0.317, 0.174, 0.256, 0.532, 0.629, 0.256, 0.227, 0.311, 0.532, 0.532, 0.311, 0.809)
+p.adjust(PLS, method = "holm", n = 13)
+#1 1 1 1 1 1 1 1 1 1 1 1 1
+
+N80 <- c(0.421, 0.011, 0.061, 0.226, 0.208, 0.085, 0.083, 0.708, 0.729, 0.662, 0.602, 0.101, 0.440)
+p.adjust(N80, method = "holm", n = 13)
+#1.000 0.143 0.732 1.000 1.000 0.913 0.913 1.000 1.000 1.000 1.000 0.913 1.000
+
+N80_E49	<- c(0.153, 0.011, 0.009, 0.232, 0.127, 0.157, 0.000, 0.201, 0.446, 0.004, 0.615, 0.053, 0.053)
+p.adjust(N80_E49, method = "holm", n = 13)
+# 0.918 0.110 0.099 0.918 0.889 0.918 0.000 0.918 0.918 0.048 0.918 0.477 0.477
+
+N80_W49 <- c(0.090, 0.530, 0.300, 0.526, 0.247, 0.353, 0.251, 0.425, 0.019, 0.237, 0.470, 0.632, 0.212)
+p.adjust(N80_W49, method = "holm", n = 13)
+#1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000 0.247 1.000 1.000 1.000 1.000
+
+S50 <- c(0.386, 0.261, 0.083, 0.174, 0.392, 0.386, 0.392, 0.392, 0.174, 0.083, 0.392, 0.506, 0.682)
+p.adjust(S50, method = "holm", n = 13)
+#1 1 1 1 1 1 1 1 1 1 1 1 1
+
+S80_E49 <- c(0.609, 0.157, 0.392, 0.392, 0.386, 0.506, 0.506, 0.386, 0.637, 0.861, 0.386, 0.174, 0.572)	
+p.adjust(S80_E49, method = "holm", n = 13)
+#1 1 1 1 1 1 1 1 1 1 1 1 1
+
+S80_N50 <- c(0.438, 0.000, 0.030, 0.000, 0.196, 0.105, 0.249, 0.163, 0.026, 0.000, 0.034, 0.369, 0.479)
+p.adjust(S80_N50, method = "holm", n = 13)
+#1.000 0.000 0.270 0.000 0.980 0.735 0.996 0.978 0.260 0.000 0.272 1.000 1.000
+
+```
+
+##### Pairwise FST
+```{r, fst}
+library(hierfstat)
+
+cy.df <- read.csv("data/Coy_geno.csv", header=TRUE)
+
+cy_pfst_heir <- pairwise.WCfst(cy.df,diploid=TRUE)
+write.table(cy_pfst_heir, "data/Pairwise_FST_WC.txt", sep="\t")
+
+cy_nei_fst <- pairwise.neifst(cy.df, diploid=TRUE) 
+write.table(cy_nei_fst, "data/Pairwise_FST_Nei.txt", sep="\t")
+```
+
+##### Pvalues for FST #
+ all broken because pairwise.fst no longer supported in most recent package of hierfstat
+```{r,pvals_fst}
+library(adegenet)
+library(hierfstat)
+
+cy.df <- read.csv("data/Coy_geno_hf.csv", header=TRUE) #alleles on one line ex (160, 160 = 160160)
+
+pp.fst(dat=cy.df,diploid=TRUE)
+
+
+#create genid object from STRUCTURE text file for all population samples
+allpop_str.obj <- read.structure("data/All_Coy_project_data.stru", 
+                 n.ind = 97,              # number of individuals
+                 n.loc = 13,              # number of markers
+                 onerowperind = TRUE,     # TRUE for single row for individual 
+                 col.lab = 1,             # integer for column with individual labels
+                 col.pop = 2,             # integer for column with population assignment
+                 col.others = 0,          # integer for column with other info (locations?)
+                 row.marknames = 1   ,    # integer for row containing marker names
+                 NA.char = "-99", 
+                 pop = NULL,              # optional factor for population for individuals
+                 #sep = ",", 
+                 ask = FALSE, 
+                 quiet = FALSE)
+
+hf_df <- read.csv("data/Coy_geno_hf.csv", header=TRUE)
+
+#test.between to test whether pop(Sampling Side of Highway) has a significant effect on genetic structuring
+
+#test.between(data, test.lev, rand.unit, nperm, ...)
+test.between(gtrunchier[,-c(1,2)],test.lev=Locality,rand.unit=Patch)
+test.between(hf_df[,-c(1,2)], test.lev = cy.df$Pop, rand.unit = cy.df$SoH) #p.val = 0.09?
+
+test.g(data = cy.df[,-c(1,2)], level = cy.df$SoH, nperm = 100)
+
+allelic.richness(hf_df, diploid=TRUE)
+
+pp.fst(hf_df, diploid = TRUE)
+
+varcomp.glob(data.frame(Locality,Patch),gtrunchier[,-c(1,2)])
+
+fstat(x)
+
+x <- allpop_str.obj
+NBPERM <- 9
+
+#original FST values
+mat.obs <- pairwise.fst(x, res.type="matrix") 
+
+#list with NPERM matrices of permuted Fst values
+mat.perm <- lapply(1:NBPERM, function(i) pairwise.neifst(x, pop=sample(pop(x)), diploid=TRUE))
+
+#mean of a vector of permuted values for this pair of populations across all replicates
+mean(c(mat.obs[1,2] < na.omit(sapply(1:NBPERM, function(i) mat.perm[[i]][1,2])), TRUE)) #ABBL/LWSL?
+mean(c(mat.obs[3,15] < na.omit(sapply(1:NBPERM, function(i) mat.perm[[i]][3,15])), TRUE)) #ABBL/PYRL?
+#[1] 0.00990099  no matter pop combo?
+
+test12 <- as.randtest(na.omit(sapply(1:NBPERM, function(i) mat.perm[[i]][1,2])), mat.obs[1,2], alter="greater")
+test12
+#Monte-Carlo test
+as.randtest(sim = na.omit(sapply(1:NBPERM, function(i) mat.perm[[i]][1, 2])), obs = mat.obs[1,2], alter = "greater")
+
+
+allTests <- list()
+for(i in 1:(nrow(mat.obs)-1)){
+   for(j in 2:nrow(mat.obs)){
+   allTests[[paste(rownames(mat.obs)[i],rownames(mat.obs)[j],sep="-")]] <- as.randtest(na.omit(sapply(1:NBPERM, function(k) mat.perm[[k]][i,j])), mat.obs[i,j], alter="greater")
+   }
+}
+
+```
+
+
+#### Mantel Tests
+
+```{r}
+library(vegan)
+library(geosphere)
+
+#data frames for tests
+cy_gendist <- read.csv("data/Coy/coy_mantel.csv", header=TRUE)
+ba_gendist <- read.csv("data/Coy/ba_coy_mantel.csv", header=TRUE)
+bai_gendist <- read.csv("data/Coy/ba_ind_coy_mantel.csv", header=TRUE)
+snf_gendist <- read.csv("data/Coy/snf_coy_mantel.csv", header=TRUE)
+snfi_gendist <- read.csv("data/Coy/snf_ind_coy_mantel.csv", header=TRUE)
+gen_mtrx <- read.csv("data/Coy/Coy_gendist.csv", header=TRUE)
+ba_mtrx <- read.csv("data/Coy/ba_gendist.csv", header=TRUE)
+bai_mtrx <- read.csv("data/Coy/ba_ind_gendist.csv", header=TRUE)
+snf_mtrx <- read.csv("data/Coy/snf_gendist.csv", header=TRUE)   
+snfi_mtrx <- read.csv("data/Coy/snf_ind_gendist.csv", header=TRUE)   
+
+gen <- cy_gendist$Gendist
+
+geo <- data.frame(cy_gendist$Long, cy_gendist$Lat)
+ba.geo <- data.frame(ba_gendist$Long, ba_gendist$Lat)
+snf.geo <- data.frame(snf_gendist$Long, snf_gendist$Lat)
+bai.geo <- data.frame(bai_gendist$Long, bai_gendist$Lat)
+snfi.geo <- data.frame(snfi_gendist$Long, snfi_gendist$Lat)
+
+
+#convert into matrix
+#genetic data frame - euclidean dissimilarity
+dist.gen <- as.dist(gen_mtrx)
+ba.dist.gen <- as.dist(ba_mtrx)
+snf.dist.gen <- as.dist(snf_mtrx)
+bai.dist.gen <- as.dist(bai_mtrx)
+snfi.dist.gen <- as.dist(snfi_mtrx)
+
+#geographic data frame - haversine distance 
+d.geo <- distm(geo, fun = distHaversine)
+dist.geo <- as.dist(d.geo)
+
+ba.d.geo <- distm(ba.geo, fun = distHaversine)
+ba.dist.geo <- as.dist(ba.d.geo)
+
+snf.d.geo <- distm(snf.geo, fun = distHaversine)
+snf.dist.geo <- as.dist(snf.d.geo)
+
+bai.d.geo <- distm(bai.geo, fun = distHaversine)
+bai.dist.geo <- as.dist(bai.d.geo)
+
+snfi.d.geo <- distm(snfi.geo, fun = distHaversine)
+snfi.dist.geo <- as.dist(snfi.d.geo)
+
+#Mantel test
+#is genetic distance related to geographic distance
+gen_geo <- mantel(dist.gen, dist.geo, method = "spearman", permutations = 9999, na.rm = TRUE)
+gen_geo
+#Mantel statistic r: 0.3725   Significance: 0.0031 
+#Upper quantiles of permutations (null model):
+#  90%   95% 97.5%   99% 
+#0.201 0.252 0.290 0.328
+
+
+#Bay Area
+ba.gen_geo <- mantel(ba.dist.gen, ba.dist.geo, method = "spearman", permutations = 9999, na.rm = TRUE)
+ba.gen_geo
+#Mantel statistic r:   0.5   Significance: 0.5 
+#Upper quantiles of permutations (null model):
+#  90%   95% 97.5%   99% 
+# 0.80  0.90  0.95  0.98
+
+#BA Individuals
+bai.gen_geo <- mantel(bai.dist.gen, bai.dist.geo, method = "spearman", permutations = 9999, na.rm = TRUE)
+bai.gen_geo
+#Mantel statistic r: 0.1546    Significance: 0.0493 
+#Upper quantiles of permutations (null model):
+#  90%   95% 97.5%   99% 
+#0.118 0.154 0.189 0.226
+
+#SNF
+snf.gen_geo <- mantel(snf.dist.gen, snf.dist.geo, method = "spearman", permutations = 9999, na.rm = TRUE)
+snf.gen_geo
+#Mantel statistic r: -0.04643    Significance: 0.56528 
+#Upper quantiles of permutations (null model):
+#  90%   95% 97.5%   99% 
+#0.361 0.443 0.482 0.544 
+
+#SNF Individuals
+snfi.gen_geo <- mantel(snfi.dist.gen, snfi.dist.geo, method = "spearman", permutations = 9999, na.rm = TRUE)
+snfi.gen_geo
+#Mantel statistic r: -0.01606    Significance: 0.583 
+#Upper quantiles of permutations (null model):
+#   90%    95%  97.5%    99% 
+#0.0847 0.1106 0.1319 0.1618
+
+#Partial Mantel
+
+#read in side of highway matrices for each region (0= pops same side as focal highway, 1 = pops opposite side of focal highway)
+
+soh_80 <- read.csv("data/Coy/SNF_part_mantel_80.csv", header=TRUE)
+soh_50 <- read.csv("data/Coy/SNF_part_mantel_50.csv", header=TRUE)
+soh_49 <- read.csv("data/Coy/SNF_part_mantel_49.csv", header=TRUE)
+
+soh_580 <- read.csv("data/Coy/BA_part_mantel_580.csv", header=TRUE)
+soh_680 <- read.csv("data/Coy/BA_part_mantel_680.csv", header=TRUE)
+
+# is genetic distance related to side of highway
+
+#SNF
+soh80.gen_geo <- mantel.partial(snfi.dist.gen, snfi.dist.geo, soh_80, method = "spearman", permutations = 9999, na.rm = TRUE)
+soh80.gen_geo
+#Mantel statistic r: -0.04238    Significance: 0.7404 
+#Upper quantiles of permutations (null model):
+#   90%    95%  97.5%    99% 
+#0.0861 0.1095 0.1327 0.1581 
+
+soh50.gen_geo <- mantel.partial(snfi.dist.gen, snfi.dist.geo, soh_50, method = "spearman", permutations = 9999, na.rm = TRUE)
+soh50.gen_geo
+#Mantel statistic r: 0.0004283   Significance: 0.473 
+#Upper quantiles of permutations (null model):
+#   90%    95%  97.5%    99% 
+#0.0839 0.1094 0.1305 0.1552
+
+soh49.gen_geo <- mantel.partial(snfi.dist.gen, snfi.dist.geo, soh_49, method = "spearman", permutations = 9999, na.rm = TRUE)
+soh49.gen_geo
+#Mantel statistic r: -0.02807    Significance: 0.6609 
+#Upper quantiles of permutations (null model):
+#   90%    95%  97.5%    99% 
+#0.0832 0.1105 0.1366 0.1628
+
+#BA
+soh580.gen_geo <- mantel.partial(bai.dist.gen, bai.dist.geo, soh_580, method = "spearman", permutations = 9999, na.rm = TRUE)
+soh580.gen_geo
+#Mantel statistic r: 0.1171    Significance: 0.1091 
+#Upper quantiles of permutations (null model):
+#  90%   95% 97.5%   99% 
+#0.123 0.160 0.197 0.237 
+
+soh680.gen_geo <- mantel.partial(bai.dist.gen, bai.dist.geo, soh_680, method = "spearman", permutations = 9999, na.rm = TRUE)
+soh680.gen_geo
+#Mantel statistic r: 0.2061   Significance: 0.0166 
+#Upper quantiles of permutations (null model):
+#  90%   95% 97.5%   99% 
+#0.113 0.151 0.184 0.224 
+
+
+#Gray Fox
+gf_gendist <- read.csv("data/Coy/Gf_mantel.csv", header=TRUE)
+gfi_gendist <- read.csv("data/Coy/Gf_ind_mantel.csv", header=TRUE)
+gf_mtrx <- read.csv("data/Coy/Gf_gendist.csv", header=TRUE)
+gfi_mtrx <- read.csv("data/Coy/Gf_ind_gendist.csv", header=TRUE)
+
+gf.dist.gen <- as.dist(gf_mtrx)
+gfi.dist.gen <-as.dist(gfi_mtrx)
+
+gf.geo <- data.frame(gf_gendist$Long, gf_gendist$Lat)
+gfi.geo <- data.frame(gfi_gendist$Long, gfi_gendist$Lat)
+
+#geographic data frame - haversine distance 
+gf.d.geo <- distm(gf.geo, fun = distHaversine)
+gf.dist.geo <- as.dist(gf.d.geo)
+
+gfi.d.geo <- distm(gfi.geo, fun = distHaversine)
+gfi.dist.geo <- as.dist(gfi.d.geo)
+
+#Mantel test
+#is genetic distance related to geographic distance
+gf.gen_geo <- mantel(gf.dist.gen, gf.dist.geo, method = "spearman", permutations = 9999, na.rm = TRUE)
+gf.gen_geo
+
+gfi.gen_geo <- mantel(gfi.dist.gen, gfi.dist.geo, method = "spearman", permutations = 9999, na.rm = TRUE)
+gfi.gen_geo
+#Mantel statistic r: 0.03368   Significance: 0.2438 
+#Upper quantiles of permutations (null model):
+#   90%    95%  97.5%    99% 
+#0.0712 0.0954 0.1183 0.1468
+
+#partial Mantel
+soh_49gf <- read.csv("data/Coy/GF_part_mantel_49.csv", header=TRUE)
+
+soh49.gen_geo <- mantel.partial(gfi.dist.gen, gfi.dist.geo, soh_49gf, method = "spearman", permutations = 9999, na.rm = TRUE)
+soh49.gen_geo
+#Mantel statistic r: 0.04256    Significance: 0.2256 
+#Upper quantiles of permutations (null model):
+#  90%   95% 97.5%   99% 
+#0.080 0.106 0.130 0.164
+```
+
+#### Modeling
+
+```{r}
+devtools::install_github("wpeterman/ResistanceGA", build_vignettes = TRUE)
+library(ResistanceGA)
+
+#MLPE.lmm(resistance, pairwise.genetic, REML = FALSE, ID = NULL, ZZ = NULL, scale = TRUE)
+resistance <- read.csv("data/GIS/snf_resistance_traffic.csv", header = FALSE)
+
+pairwise.genetic <- read.csv("data/GIS/snf_gen_dist.csv", header = FALSE) 
+
+MLPE.lmm(resistance, pairwise.genetic, REML = FALSE, ID = NULL, ZZ = NULL, scale = TRUE)
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+#### Spatial mapping
+
+##### Coyote samples
+
+```{r coy_map}
+library(sp)
+library(rgdal)
+library(rgeos)
+library(raster)
+library(dplyr)
+
+#read in csv of sampling points hich were genotyped
+gf_samps <- read.csv("data/Coy/mapping_gf.csv")
+#ba_coy <- read.csv("data/Coy/mapping_ba.csv")
+#snf_coy <- read.csv("data/Coy/mapping_snf.csv")
+
+# Check how many NA's in spatial data
+gf_samps %>% filter(is.na(Lat)) %>% tally # no NAs!
+
+# make the data "spatial":
+#coy.SP <- SpatialPointsDataFrame(coords = ba_coy[, c("Long", "Lat")], data = ba_coy) #will not work with NAs
+gf.SP <- SpatialPointsDataFrame(coords = gf_samps[, c("Long", "Lat")], data = gf_samps) #will not work with NAs
+
+# check the CRS
+crs(coy.SP) # should be NA
+lats <-CRS("+proj=longlat") # set the default for lat/longs  4326 = WGS 84 CRS projection EPSG:3717
+proj4string(gf.SP) <- lats
+#proj4string(coy.SP) <- lats
+crs(coy.SP) # now = CRS arguments: +proj=longlat +datum=WGS84 +no_defs 
+
+plot(coy.SP)
+
+writeOGR(coy.SP, dsn="data/GIS", layer="ba_coy",  driver="ESRI Shapefile") # need to correct file path
+
+coy_shp <- readOGR(dsn = ("data/GIS"), layer = "snf_coy")
+
+ct <- raster("data/GIS/paint_samps4x.tif")
+
+bio_ext <- c(-121.55, -120.39, 38.47, 39.41)  #-122.1666419875648160,37.5894694860321650 : -121.7823849327517820,37.9953009592464284
+ext <- extent(bio_ext)
+r.a <- raster(nrows= 3488, ncols = 4304, ext) 
+rc <- rasterize(ct, r.a.4)
+bc <- brick(r)
+
+plot(ct)
+plot(r$presence)
+
+writeRaster(ct, "data/GIS/snf_coy_paint4x.asc", overwrite = TRUE)
+
+
+
+
+
+SR_49 <- readOGR(dsn = ("data/GIS/tl_2016_06_prisecroads"), layer = "tl_2016_06_prisecroads")
+sr49.df <- as.data.frame(SR_49)
+```
+Need to work backwards in order to get the extent correct for the SNF (and eventually BA)
+
+```{r, landforms}
+landform <- raster("data/GIS//CA_land_eco/lf3_30T_CALCC.tif")
+
+#define the crop extent
+bio_ext <- c(-121.55, -120.39, 38.47, 39.41)
+lf.r <- crop(landform, bio_ext)
+#lf.r <- projectRaster(lf.r, bias5.r)
+#lf.r <- crop(lf.r, extent(bias_5k))
+#lf.r <- mask(lf.r, bias5.r)
+writeRaster(lf.r, "data/GIS/snf_landform_sa.asc") #Same problem as above, resolution is different, need to make this match above layers...but wait to see what the landuse res is 1st
+```
+
+##### Focal highways
+```{r}
+ba_hwy <- readOGR(dsn = ("data/GIS"), layer = "ba_focal_hwys")
+
+snf.hwy.sp.df <- as.data.frame(snf_hwy)
+
+# set extent
+bio_ext <- c(-122.1668, -121.78245, 37.5896, 37.9955)                                            
+#  SNF= (-121.55, -120.39, 38.47, 39.41) 
+ext <- extent(bio_ext)
+# landofrm extent(-121.5499999999999972,38.4699999999999989 : -120.6899999999999977,39.4053037884202979)
+
+r.a <- raster(nrows= 1506, ncols = 1426, ext) #get from Properties: ba/snf_landform.sa.asc in QGIS
+
+#r.a.4 <- raster(nrows= 872, ncols = 1078, ext) #trying dividing 4x to reduce size/resolutionof raster for circuitscape
+#SNF = nrows= 3488, ncols = 4304  SNF 25% resolution = nrows= 872, ncols = 1078
+
+r <- rasterize(ba_hwy, r.a)
+plot(r)
+
+writeRaster(r, "data/GIS/ba_focal_hwys.asc")
+
+
+```
+
+
+Traffic data image
+```{r, aadt}
+#read in Hwy shapefile
+CA.hwy <- readOGR(dsn = ("data/GIS/tl_2016_06_prisecroads"), layer = "tl_2016_06_prisecroads")
+
+#check projection
+crs(CA.hwy)
+SNF_sub <- crop(CA.hwy, extent(-121.55, -120.39, 38.47, 39.41))
+BA_sub <- crop(CA.hwy, extent(-122.1668, -121.78245, 37.5896, 37.9955))
+
+#turn into a spatial points dataframe
+write.csv(SNF_sub, "data/GIS/CA_sub_hwy.csv", row.names = TRUE)
+write.csv(BA_sub, "data/GIS/BA_sub_hwy.csv", row.names = TRUE)
+
+
+#subset out hwys outside of Study Area (Placer and Nevada Co)
+SNF_hwy <- subset(CA.hwy, CA.hwy$FULLNAME %in% c("State Rte 49", "State Rte 20", "I- 80", "State Rte 174", "I- 80 Bus", "US Hwy 50", "Sacramento Fwy", "Grass Valley Hwy"))
+hwy_names <- c("State Rte 49", "State Rte 20", "I- 80", "State Rte 174", "I- 80 Bus", "US Hwy 50", "Sacramento Fwy", "Grass Valley Hwy")
+
+BA_hwy <- subset(BA_sub, BA_sub$FULLNAME %in% c("I- 680", "I- 580"))
+
+plot(SNF_hwy)  
+
+
+#read in shapefile from Caltrans AADT
+aadt15 <- readOGR(dsn="data/GIS/AADT2015b", layer = "AADT2015b")
+#need to constrain to the coordinates within SA
+BA_aadt <- subset(aadt15, aadt15$Route %in% c('680', '580') & aadt15$County %in% c("ALA", "CC"))
+
+dev.new()
+
+#SNF = xlim = c(-121.55, -120.39), ylim=c(38.47, 39.41)
+#BA = xlim = c(-122.1668, -121.78245), ylim=c(37.5896, 37.9955)
+
+map("state",region=c('CA'), xlim = c(-121.55, -120.39), ylim=c(38.47, 39.41)) 
+map.axes()
+map("county", region=c('CA'),boundary=FALSE,lty=3, add=TRUE, col = "gray63")
+
+#finding relevant fUllname categories
+#plot(CA.hwy, add = TRUE, lty=1, lwd=1, col="gray63") #SNF
+
+plot(SNF_hwy, add = TRUE, lty=1, lwd=2, col="mediumseagreen") 
+plot(gf.SP, add = TRUE, pch = ".", bg = "cyan2", cex = 0.1)
+
+
+
+plot(BA_aadt[BA_aadt@data$Postmile=="21.191",], add = TRUE, lty=1, lwd=2, col= "magenta")
+plot(BA_aadt[BA_aadt@data$Postmile=="R2.885",], add = TRUE, lty=1, lwd=2, col= "red")
+plot(BA_aadt[BA_aadt@data$Postmile=="R7.553",], add = TRUE, lty=1, lwd=2, col= "dodgerblue")
+plot(BA_aadt[BA_aadt@data$Postmile=="R8.175",], add = TRUE, lty=1, lwd=2, col= "orange")
+plot(BA_aadt[BA_aadt@data$Postmile=="14.383",], add = TRUE, lty=1, lwd=2, col= "yellow2")
+plot(BA_aadt[BA_aadt@data$Postmile=="14.846",], add = TRUE, lty=1, lwd=2, col= "green")
+plot(BA_aadt[BA_aadt@data$Postmile=="R18.707",], add = TRUE, lty=1, lwd=2, col= "cyan")
+plot(BA_aadt[BA_aadt@data$Postmile=="R19.236",], add = TRUE, lty=1, lwd=2, col= "purple")
+plot(BA_aadt[BA_aadt@data$Postmile=="",], add = TRUE, lty=1, lwd=2, col= "deeppink")
+plot(BA_aadt[BA_aadt@data$Postmile=="",], add = TRUE, lty=1, lwd=2, col= "aquamarine")
+plot(BA_aadt[BA_aadt@data$Postmile=="",], add = TRUE, lty=1, lwd=2, col= "goldenrod")
+plot(BA_aadt[BA_aadt@data$Postmile=="",], add = TRUE, lty=1, lwd=2, col= "magenta")
+
+
+
+#definitely keeping for SNF
+#hwy_lines <- c("1104690799061", "1105088962604", "1104469669293", "1104748193081", "1105088962602", "1104748193082", "1104485962252", "1104269379329", "1104259293262", "1104690778710", "1104275969068", "1102649242328", "1104271370497", "1102217391200", "110809145808", "1102217391199", "1104275957845", "1104690703745", "1104271363537", "1104690702998", "1104275836066", "1104257607938", "1104257839694", "1104257668120", "1104690703836")
+
+#SNF_hwy <- subset(CA.hwy, CA.hwy$FULLNAME %in% hwy_names & CA.hwy$LINEARID %in% hwy_lines)
+
+plot(CA.hwy[CA.hwy@data$LINEARID %in% hwy_lines,], add = TRUE, lty=1, lwd=4, col="mediumseagreen")
+
+plot(SNF_aadt[SNF_aadt@data$Postmile=="",], add = TRUE, lty=1, lwd=2, col= "magenta")
+plot(SNF_aadt[SNF_aadt@data$Postmile=="",], add = TRUE, lty=1, lwd=2, col= "red")
+plot(SNF_aadt[SNF_aadt@data$Postmile=="",], add = TRUE, lty=1, lwd=2, col= "dodgerblue")
+plot(SNF_aadt[SNF_aadt@data$Postmile=="",], add = TRUE, lty=1, lwd=2, col= "orange")
+plot(SNF_aadt[SNF_aadt@data$Postmile=="",], add = TRUE, lty=1, lwd=2, col= "yellow2")
+plot(SNF_aadt[SNF_aadt@data$Postmile=="",], add = TRUE, lty=1, lwd=2, col= "green")
+plot(SNF_aadt[SNF_aadt@data$Postmile=="",], add = TRUE, lty=1, lwd=2, col= "cyan")
+plot(SNF_aadt[SNF_aadt@data$Postmile=="",], add = TRUE, lty=1, lwd=2, col= "purple")
+plot(SNF_aadt[SNF_aadt@data$Postmile=="",], add = TRUE, lty=1, lwd=2, col= "deeppink")
+plot(SNF_aadt[SNF_aadt@data$Postmile=="",], add = TRUE, lty=1, lwd=2, col= "aquamarine")
+plot(SNF_aadt[SNF_aadt@data$Postmile=="",], add = TRUE, lty=1, lwd=2, col= "goldenrod")
+plot(SNF_aadt[SNF_aadt@data$Postmile=="",], add = TRUE, lty=1, lwd=2, col= "magenta")
+
+
+#maybe need 110434220835
+
+
+aadt15 <- readOGR(dsn="data/GIS/AADT2015b", layer = "AADT2015b")
+
+
+head(aadt15)
+
+PN_aadt.df <- as.data.frame(aadt15)
+#subset to Caltrans districts 3 (SNF) and 4 (BA)
+PN_aadt <- subset(aadt15, aadt15$District=='4'|aadt15$District=='3')
+plot(PN_aadt)
+write.csv(PN_aadt.df, "data/GIS/CA_aadt.csv")
+
+
+#subset SNF study area to counties of interest and hwys of interest
+SNF_aadt <- subset(aadt15,aadt15$County %in% c("PLA", "NEV", "SAC", "ED") & aadt15$Route %in% c("20", "49", "174", "80", "50"))
+SNF_aadt.df <- as.data.frame(SNF_aadt)
+plot(SNF_aadt)
+
+#change colnames
+names(SNF_aadt.df)[names(SNF_aadt.df) == 'coords.x1'] <- 'long'
+names(SNF_aadt.df)[names(SNF_aadt.df) == 'coords.x2'] <- 'lat'
+
+#rename Long and Lat
+names(SNF_aadt.df)[names(SNF_aadt.df) == 'coords.x1'] <- 'long'
+names(SNF_aadt.df)[names(SNF_aadt.df) == 'coords.x2'] <- 'lat'
+
+#write csv for sunset hwys
+write.csv(SNF_aadt.df, "data/GIS/SNF_aadt.csv")
+
+#plotting to find road sections to exclude from aadt files?
+dev.new()
+
+map("state",region=c('CA'), xlim = c(-121.55, -120.39), ylim=c(38.47, 39.41))
+map.axes()
+map("county", region=c('CA'),boundary=FALSE,lty=3, add=TRUE)
+#plot(snf_hwy, add = TRUE, lty=1, lwd=1, col= "Blue", alpha = 0.5)
+
+#finding relevant postmiles
+plot(CA.hwy[CA.hwy@data$LINEARID %in% hwy_lines,], add = TRUE, lty=1, lwd=2, col="mediumseagreen")
+plot(SNF_aadt[SNF_aadt@data$Route=="80" & SNF_aadt@data$Postmile %in% pm_80,], add = TRUE, lty=1, lwd=1, col= "magenta")
+
+
+#plot(PN_aadt[PN_aadt@data$County=="SAC" & PN_aadt@data$Route=="51",], add = TRUE, lty=1, lwd=1, col= "cyan")
+
+plot(SNF_aadt[SNF_aadt@data$Back_AADT < "10,000",], add = TRUE, pch=20, cex=1, col= "dodgerblue")
+#plot(SNF_aadt[SNF_aadt@data$Back_AADT>"10,000"|<"34,000",], add = TRUE, lty=1, lwd=1, col= "orange")
+plot(SNF_aadt[SNF_aadt@data$Back_AADT=="",], add = TRUE, lty=1, lwd=1, col= "yellow2")
+plot(SNF_aadt[SNF_aadt@data$Back_AADT=="",], add = TRUE, lty=1, lwd=1, col= "green")
+plot(SNF_aadt[SNF_aadt@data$Back_AADT=="",], add = TRUE, lty=1, lwd=1, col= "cyan")
+plot(SNF_aadt[SNF_aadt@data$Back_AADT=="",], add = TRUE, lty=1, lwd=1, col= "purple")
+plot(SNF_aadt[SNF_aadt@data$Back_AADT=="",], add = TRUE, lty=1, lwd=1, col= "deeppink")
+plot(SNF_aadt[SNF_aadt@data$Back_AADT=="",], add = TRUE, lty=1, lwd=1, col= "aquamarine")
+plot(SNF_aadt[SNF_aadt@data$Back_AADT=="",], add = TRUE, lty=1, lwd=1, col= "goldenrod")
+plot(SNF_aadt[SNF_aadt@data$Back_AADT=="",], add = TRUE, lty=1, lwd=1, col= "magenta")
+#drop all 0 AADTs, these are just for noting county line transitions and don't have count data
+
+SNF_aadt.df <- read.csv("data/GIS/SNF_aadt.csv")
+
+#subset to only postmiles of need
+pmiles <- c("R12.162", "R12.24", "R12.302", "R12.864", "R13.112", "R13.614", "R14.797", "R15.41", "R15.916", "R16.741", "R16.988", "R17.24", "R17.398", "23.25", "29.6", "31.834", "41.287", "43.868", "45.661", "3.208", "3.78", "5.21", "5.86", "5.99", "6.38", "7.427", "R8.973", "11.373", "2.194", "3.614", "9.22", "10.71", "R13.663", "R14.475", "L.35", "", "L1.06", "L1.37", "R0", "R.6", "R2.131", "R2.628", "R3.473", "R3.674", "R5.336", "R7.746", "R9.505", "R10.919", "12.496", "15.759", "16.1", "17.008", "19.233", "21.502", "23.136", "0.857", "R3.232", "4.962", "6.57", "R8.564", "R10.295", "R12.19", "R14.011", "R15.055", "15.829", "16.99", "17.42", "17.52", "17.667", "17.788", "18.032", "18.517", "18.99", "20.296", "20.741", "23.957", "R25.949", "R28.842", "R31.299", "39.772", "R10.989", "12.476", "14.454", "16.685", "18", "0.268", "1.975", "3.07", "3.661", "4.16", "6.055", "7.421", "8.724", "10.35", "13.808", "14.301", "16.846", "17.289", "17.541", "17.83", "R18.906", "R19.465", "R20.127", "R21.128", "R22.212", "R23.429", "
+R26.209", "27.392", "28.587", "29.323", "31.794", "33.131", "37.782", "38.347", "41.372", "42.191", "43.167", "44.752", "46.31", "46.935", "49", "53.356", "54.812", "R56.057", "R58.644", "R58.835", "R59.54", "R62.027R", "R62.027L", "R62.747", "R63.517", "R66.201", "0.14", "0.73", "1.633", "2.883", "3.35", "5.58", "6.83", "8.94", "9.634", "9.81", "9.88", "10.17", "10.218")
+
+
+
+SNF_aadt <- subset(aadt15,aadt15$County %in% c("PLA", "NEV", "SAC", "ED") & aadt15$Route %in% c("20", "49", "174", "80", "50", "51") & aadt15$Postmile %in% pmiles)
+
+plot(SNF_aadt)
+
+SNF_aadt.df <- read.csv("data/GIS/SNF_aadt.csv", header = TRUE)
+
+#ggplot
+ca_state <- map_data("state",region=c('CA'))
+
+ca_count <- map_data("county", region=c('CA'))
+# <- subset(counties, region == "california")
+
+ca_base <- ggplot(data = ca_state, mapping = aes(x = long, y = lat, group= group)) + 
+                  coord_cartesian(xlim = c(-121.55,-120.39), ylim = c(38.47, 39.41)) +
+                  geom_polygon(col = "black", fill = NA) 
+
+count_base <- ggplot(data = ca_count, mapping = aes(x = long, y = lat, group = group)) + 
+                  coord_cartesian(xlim = c(-121.55,-120.39), ylim = c(38.47, 39.41)) +
+                  geom_polygon(color = "gray50", lty = 3, lwd = 0.9, fill = NA)
+
+count_base + 
+  geom_path(data = SNF_sub, color = "gray46", lty=1, lwd=1, show.legend=FALSE) +
+  #geom_path(data = SNF_hwy, lty= 1, lwd=1.5, color="palegreen3") + 
+  geom_point(data = SNF_aadt.df, show.legend=TRUE, aes(long, lat, group=NULL, fill =Taffic_bin, shape=Taffic_bin)) +
+  scale_fill_manual(values=c("cornsilk", "khaki", "yellow2", "goldenrod1", "orange2", "chocolate1", "orangered", "red2", "firebrick", "darkred")) +
+  scale_shape_manual(values=c(21,22,23,24,25,21,22,23,24,25)) + 
+  theme(panel.grid = element_blank(), panel.background = element_blank()) +
+  theme(axis.line = element_line(colour = "black")) +
+  ggtitle("Samples Collected and Genotyped") +
+  theme(plot.title = element_text(color="black", size=15, face="bold")) #
+
+
+           
+           
+           
+geom_jitter(data = gno.geno, aes(long, lat, group=genotype, color="palegreen3"),            
+             position=position_jitter(width = 0.0015, height = 0.0015), 
+             pch = 24, bg = "palegreen3", cex=1.8, show.legend=FALSE) +                  
+  geom_jitter(data = cno.geno, aes(long, lat, group=genotype, color=factor(genotype)),        
+             position=position_jitter(width = 0.0015, height = 0.0015),  
+             pch = 25, bg = "deepskyblue", cex=1.8, show.legend=FALSE) +   
+  geom_jitter(data = gk2.geno, aes(x=long, y=lat, group=genotype, color=factor(genotype)), 
+             position=position_jitter(width = 0.0015, height = 0.0015), 
+             pch = 21, bg = "dimgrey", cex=3, show.legend=FALSE) +                  
+  geom_jitter(data = gk1.geno, aes(x=long, y=lat, group=genotype, color=factor(genotype)), 
+             position=position_jitter(width = 0.0051, height = 0.0015),
+             pch = 21, bg = "darkorange3", cex=3, show.legend=FALSE) +  
+  geom_jitter(data = ck2.geno, aes(x=long, y=lat, group=genotype, color=factor(genotype)), 
+             position=position_jitter(width = 0.0015, height = 0.0015), 
+             pch = 21, bg = "khaki3", cex=3, show.legend=FALSE) +
+  geom_jitter(data = ck1.geno, aes(x=long, y=lat, group=genotype, color=factor(genotype)), 
+             position=position_jitter(width = 0.0051, height = 0.0015),
+             pch = 21, bg = "orchid", cex=3, show.legend=FALSE) +
+  labs(x=NULL, y=NULL) +
+  
+  #theme(legend.position =c(0.8,0.2))
+  #scale_fill_identity(name = '', guide = 'legend', labels = c('Level')) +
+#  scale_color_manual(values = c("palegreen3", "deepskyblue", "dimgrey", "darkorange3", "khaki3", "orchid", "red"), 
+#                     guide = guide_legend(override.aes = list(
+#                       linetype=c(0,0,0,0,0,0,1),
+#                       shape = c(24,21,21,25,21,21,0))))
+  
+
+```
+
+
+```{r}
+PN_aadt <- subset(aadt15, aadt15$Route=='49' &aadt15$County %in% c("PLA", "NEV"))
+
+
+
+#subset aadt points, read in shp, need to sort out BA points
+PN_aadt.df <- filter(PN_aadt.df, Route=='49', County %in% c("PLA", "NEV")) 
+
+PN.traf.bin <- read.csv("Projects/NCST/data/GIS/PN.aadt.trafbin.csv")
+
+PN.tb.sp <- SpatialPointsDataFrame(coords = PN.traf.bin[, c("long", "lat")], data = PN.traf.bin)
+
+#culverts data frame
+PN_culv <- read.csv("Projects/NCST/data/GIS/Culverts.csv")
+
+PN_culv.SP <- SpatialPointsDataFrame(coords = PN_culv[, c("long", "lat")], data = PN_culv) #will not work with NAs
+
+#turn into a spatial points dataframe
+PN_culv.df <- as.data.frame(PN_culv)
+
+
+#traffic heat map test plot
+# First create a df for the colors
+col.df <- data.frame(map=c("khaki", "goldenrod1", "orange", "darkorange1", "orangered3", "red3", "firebrick", "darkred"), rank=c(1,2,3,4,5,6,7,8), value=c(1,1,1,1,1,1,1,1))
+
+ggplot(col.df, aes(x = map, y = value, fill=rank) + 
+      geom_bar()) #+
+      scale_fill_manual(values=c("khaki", "goldenrod1", "orange", "darkorange1", "orangered3", "red3", "firebrick", "darkred"))
+
+#ggplot(df, aes(x=cond, y=yval, fill=cond)) + geom_bar(stat="identity")
+
+```
+
+
+
+
+```{r}
+library(ggplot2)
+library(maps)
+library(mapdata)
+library(ggmap)
+library(ggsn)
+library(raster)
+# see what extent is for our shape/points
+extent(coy.SP)
+
+# Use this in xlim/ylim
+dev.new()
+
+map("state",region=c('CA'), xlim = c(-121.55, -120.39), ylim=c(38.47, 39.41))
+#SNF = xlim = c(-121.55, -120.39), ylim=c(38.47, 39.41)
+#BA = xlim = c(-122.1668, -121.78245), ylim=c(37.5896, 37.9955)
+
+map("state",region=c('CA'), xlim = c(-122.1668, -121.78245), ylim=c(37.5896, 37.9955)) 
+map.axes()
+map("county", region=c('CA'),boundary=FALSE,lty=3, add=TRUE)
+
+
+
+ca_count <- map_data("county", region=c('CA'),boundary=FALSE,lty=3, add=TRUE)
+
+count_base <- ggplot(data = ca_count, mapping = aes(x = long, y = lat, group= group)) + 
+                  coord_cartesian(xlim = c(-121.55, -120.39), ylim = c(38.47, 39.41)) +
+                  geom_polygon(color = "gray50", lty = 3, lwd = 0.9, fill = NA)
+
+SA_map <- (count_base)
+
+plot(snf_hwy, add = TRUE, lty=1, lwd=1, col= "Blue", alpha = 0.5)
+plot(coy.SP, add = TRUE, pch = ".", bg = "cyan2", cex = 0.1)
+
+
+plot(ba_hwy, add = TRUE, lty=1, lwd=2, col= "mediumseagreen", alpha = 0.5)
+plot(coy.SP, add = TRUE, pch = ".", bg = "cyan2", cex = 0.1)
+
+#add points
+plot(coy.SP[coy.SP@data$SoH=="N80",], add = TRUE, pch = 23, bg = "aquamarine2") #not plotting points
+plot(coy.SP[coy.SP@data$SoH=="S80-N50",], add=TRUE,pch=21, bg="lightslateblue", cex = 1.5) 
+plot(coy.SP[coy.SP@data$SoH=="S50",], add=TRUE,pch=21, bg="purple", cex = 1.5)
+plot(coy.SP[coy.SP@data$SoH=="W49",], add=TRUE,pch=21, bg="coral", cex = 1.5)
+plot(coy.SP[coy.SP@data$SoH=="E49",], add=TRUE,pch=21, bg="orange", cex = 1.5)
+plot(coy.SP[coy.SP@data$Ind.ID=="F14-044",], add=TRUE,pch=21, bg="green", cex = 1.5)
+
+#playing with indicating repeats
+plot(coy.SP[coy.SP@data$dlpicate=="1",], add=TRUE,pch=25, bg="forestgreen", cex = 0.8)
+plot(coy.SP[coy.SP@data$dlpicate=="2",], add=TRUE,pch=25, bg="blue1", cex = 0.8)
+plot(coy.SP[coy.SP@data$dlpicate=="3",], add=TRUE,pch=25, bg="darkslategray", cex = 0.8)
+
+#add marker points for those that yeilded a viable genotype for K1 and K2
+
+plot(coy.SP[coy.SP@data$SA=="?",], add=TRUE,pch=21, bg="coral2", cex = 1.5)
+
+rel_df <- data.frame(region = c("EB", "EB", "EB", "Sac", "Sac", "Sac"), location = c("E680", "W680", "S580-W680", "N80", "S80-N50", "S50"), relatedness = c(0.13, 0.18, 0.15, 0.05, 0.05, 0.24))
+
+
+ggplot(snf_coy, aes(Long, Lat, label=rownames(snf_coy))) +
+         geom_point(size=.01) +
+         geom_path(snf.hwy.sp.df)
+         #geom_text(hjust = 0, nudge_x = 0.2, size = 3) +
+         #scale_x_discrete(limits= rel_df$location) +
+         coord_fixed(xlim = c(-121.55, -120.39), ylim=c(38.47, 39.41)) +#, 1.3
+         theme(text = element_text(size=12)) #+
+         tdwaheme(panel.background = element_blank()) 
+
+         
+SA_map + geom_path(data=PN_hwy, color="gray19") +
+         geom_point(data=snf_coy, aes(Long, Lat, group = NULL), shape = 20, size=.0001, color = "blue")
+         
+
+
+         geom_path(data=PN_hwy[PN_hwy@data$FULLNAME=="State Rte 49",], lty=1, lwd=2, 
+                   color="darkblue") +
+         geom_point(data=PN_aadt.df, show.legend=FALSE, shape=22, aes(long, lat, group=NULL, fill=PN_aadt.df$Ahead_AADT) +
+         scale_fill_gradient(low="khaki1", high="red4"))
+           
+                  
+                  ggplot() +
+         geom_line(r, aes(long, lat)) +
+         coord_fixed(xlim = c(-121.55, -120.39), ylim=c(38.47, 39.41), 1.3) #+
+         #tdwaheme(panel.background = element_blank())        
+         
+```
