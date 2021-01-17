@@ -636,6 +636,9 @@ plot(SNF_hwy)
 aadt15 <- readOGR(dsn="data/GIS/AADT2015b", layer = "AADT2015b")
 #need to constrain to the coordinates within SA
 BA_aadt <- subset(aadt15, aadt15$Route %in% c('680', '580') & aadt15$County %in% c("ALA", "CC"))
+SNF_addt <- subset(aadt15, aadt15$Route %in% c("80", "50", "51", "174", "49") & aadt15$County %in% c("PLA", "NEV", "SAC", "ED"))
+
+
 
 dev.new()
 
@@ -758,6 +761,7 @@ R26.209", "27.392", "28.587", "29.323", "31.794", "33.131", "37.782", "38.347", 
 
 SNF_aadt <- subset(aadt15,aadt15$County %in% c("PLA", "NEV", "SAC", "ED") & aadt15$Route %in% c("20", "49", "174", "80", "50", "51") & aadt15$Postmile %in% pmiles)
 
+write.csv(SNF_aadt, "data/GIS/SNF_aadt.csv", row.names = TRUE)
 plot(SNF_aadt)
 
 SNF_aadt.df <- read.csv("data/GIS/SNF_aadt.csv", header = TRUE)
